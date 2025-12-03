@@ -325,25 +325,19 @@ public final class LinkedTreeMap<K, V> extends AbstractMap<K, V> implements Seri
 
       int delta = leftHeight - rightHeight;
       if (delta == -2) {
-        assert right != null;
-        Node<K, V> rightNode = right;
-        Node<K, V> rightLeft = rightNode.left;
-        Node<K, V> rightRight = rightNode.right;
+        Node<K, V> rightLeft = right.left;
+        Node<K, V> rightRight = right.right;
         int rightRightHeight = rightRight != null ? rightRight.height : 0;
         int rightLeftHeight = rightLeft != null ? rightLeft.height : 0;
+
         int rightDelta = rightLeftHeight - rightRightHeight;
         if (rightDelta == -1 || (rightDelta == 0 && !insert)) {
           rotateLeft(node); // AVL right right
         } else {
           assert (rightDelta == 1);
-          rotateRight(rightNode); // AVL right left
+          rotateRight(right); // AVL right left
           rotateLeft(node);
         }
-        if (insert) {
-          break; // no further rotations will be necessary
-        }
-      } else if (delta == 2) {
-
         if (insert) {
           break; // no further rotations will be necessary
         }

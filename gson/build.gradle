@@ -51,6 +51,12 @@ def scanner_path = project.rootProject.projectDir.toString() + "/annotator-out/s
 def nullaway_path = project.rootProject.projectDir.toString() + "/annotator-out/nullaway.xml"
 import net.ltgt.gradle.errorprone.CheckSeverity
 tasks.withType(JavaCompile) {
+     // Don't run NullAway when -Derrorprone.disable=true provided on the CLI
+    if (System.properties['errorprone.disable'] == 'true') {
+        options.errorprone.disableAllChecks = true
+        return
+    }
+
     // remove the if condition if you want to run NullAway on test code
     if (!name.toLowerCase().contains("test")) {
         options.errorprone.disableAllChecks = true

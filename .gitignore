@@ -14,6 +14,7 @@ release.properties
 classes
 
 .gradle
+.gradle-cache
 local.properties
 build
 
@@ -22,3 +23,4 @@ build
 examples/android-proguard-example/gen
 
 annotator-out/
+.log

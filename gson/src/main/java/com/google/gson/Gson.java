@@ -431,9 +431,6 @@ public final class Gson {
       @Override
       public AtomicLong read(JsonReader in) throws IOException {
         Number value = longAdapter.read(in);
-        if (value == null) {
-          throw new IllegalStateException("AtomicLong value must not be null");
-        }
         return new AtomicLong(value.longValue());
       }
     }.nullSafe();

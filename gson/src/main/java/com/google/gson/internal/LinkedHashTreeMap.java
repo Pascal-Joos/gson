@@ -493,9 +493,7 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
       this.height = 1;
       this.next = next;
       this.prev = prev;
-      if (prev != null) {
-        prev.next = this;
-      }
+      prev.next = this;
       next.prev = this;
     }
 

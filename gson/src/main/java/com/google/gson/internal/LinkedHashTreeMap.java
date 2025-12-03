@@ -116,7 +116,7 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
     Node<K, V> header = this.header;
     for (Node<K, V> e = header.next; e != header; ) {
       Node<K, V> next = e.next;
-      e.next = e.prev = null;
+      e.prev = null;
       e = next;
     }
 

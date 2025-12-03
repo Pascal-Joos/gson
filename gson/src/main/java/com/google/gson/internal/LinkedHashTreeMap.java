@@ -739,6 +739,9 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
           // Pop right and center, then make center the top of the stack.
           Node<K, V> right = stack;
           Node<K, V> center = right.parent;
+          if (center == null) {
+            throw new IllegalStateException();
+          }
           stack = center;
           // Construct a tree with no left child.
           center.right = right;

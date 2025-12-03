@@ -98,7 +98,7 @@ public final class Streams {
 
     /** A mutable char sequence pointing at a single char[]. */
     static class CurrentWrite implements CharSequence {
-      char[] chars;
+      char[] chars = new char[0];
 
       public int length() {
         return chars.length;

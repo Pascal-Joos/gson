@@ -406,9 +406,6 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
   private void rotateLeft(Node<K, V> root) {
     Node<K, V> left = root.left;
     Node<K, V> pivot = root.right;
-    if (pivot == null) {
-      return;
-    }
     Node<K, V> pivotLeft = pivot.left;
     Node<K, V> pivotRight = pivot.right;
 

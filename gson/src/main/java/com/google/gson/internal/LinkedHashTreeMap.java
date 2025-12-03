@@ -26,7 +26,6 @@ import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -726,9 +725,6 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
         if (leavesSkipped == 0) {
           // Pop right, center and left, then make center the top of the stack.
           Node<K, V> right = stack;
-          if (right == null || right.parent == null || right.parent.parent == null) {
-            throw new IllegalStateException();
-          }
           Node<K, V> center = right.parent;
           Node<K, V> left = center.parent;
           center.parent = left.parent;
@@ -742,12 +738,6 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
         } else if (leavesSkipped == 1) {
           // Pop right and center, then make center the top of the stack.
           Node<K, V> right = stack;
-          if (right == null || right.parent == null) {
-            throw new IllegalStateException();
-          }
-          if (right == null || right.parent == null || right.parent.parent == null) {
-            throw new IllegalStateException();
-          }
           Node<K, V> center = right.parent;
           stack = center;
           // Construct a tree with no left child.
@@ -763,9 +753,6 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
 
     Node<K, V> root() {
       Node<K, V> stackTop = this.stack;
-      if (stackTop == null) {
-        throw new IllegalStateException();
-      }
       if (stackTop.parent != null) {
         throw new IllegalStateException();
       }
@@ -806,34 +793,33 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
     }
   }
 
-  final class EntrySet extends AbstractSet<Map.Entry<K, V>> {
+  final class EntrySet extends AbstractSet<Entry<K, V>> {
+    @Override
     public int size() {
       return size;
     }
 
-    public Iterator<Map.Entry<K, V>> iterator() {
-      return new LinkedTreeMapIterator<Map.Entry<K, V>>() {
-        public Map.Entry<K, V> next() {
+    @Override
+    public Iterator<Entry<K, V>> iterator() {
+      return new LinkedTreeMapIterator<Entry<K, V>>() {
+        public Entry<K, V> next() {
           return nextNode();
         }
       };
     }
 
+    @Override
     public boolean contains(Object o) {
-      if (!(o instanceof Map.Entry)) {
-        return false;
-      }
-      Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
-      Node<K, V> candidate = findByEntry(e);
-      return candidate != null;
+      return o instanceof Entry && findByEntry((Entry<?, ?>) o) != null;
     }
 
+    @Override
     public boolean remove(Object o) {
-      if (!(o instanceof Map.Entry)) {
+      if (!(o instanceof Entry)) {
         return false;
       }
-      Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
-      Node<K, V> node = findByEntry(e);
+
+      Node<K, V> node = findByEntry((Entry<?, ?>) o);
       if (node == null) {
         return false;
       }
@@ -841,37 +827,49 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
       return true;
     }
 
+    @Override
     public void clear() {
       LinkedHashTreeMap.this.clear();
     }
   }
 
   final class KeySet extends AbstractSet<K> {
+    @Override
     public int size() {
       return size;
     }
 
+    @Override
     public Iterator<K> iterator() {
       return new LinkedTreeMapIterator<K>() {
+        @Nullable
         public K next() {
           return nextNode().key;
         }
       };
     }
 
+    @Override
     public boolean contains(Object o) {
       return containsKey(o);
     }
 
+    @Override
     public boolean remove(Object key) {
       return removeInternalByKey(key) != null;
     }
 
+    @Override
     public void clear() {
       LinkedHashTreeMap.this.clear();
     }
   }
 
+  /**
+   * If somebody is unlucky enough to have to serialize one of these, serialize it as a
+   * LinkedHashMap so that they won't need Gson on the other side to deserialize it. Using
+   * serialization defeats our DoS defence, so most apps shouldn't use it.
+   */
   private Object writeReplace() throws ObjectStreamException {
     return new LinkedHashMap<K, V>(this);
   }

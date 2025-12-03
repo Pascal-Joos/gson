@@ -564,6 +564,7 @@ public final class $Gson$Types {
    * bound must be Object.class.
    */
   private static final class WildcardTypeImpl implements WildcardType, Serializable {
+    private static final Type NO_LOWER_BOUND = new Type() {};
     private final Type upperBound;
     private final Type lowerBound;
 
@@ -581,7 +582,7 @@ public final class $Gson$Types {
       } else {
         checkNotNull(upperBounds[0]);
         checkNotPrimitive(upperBounds[0]);
-        this.lowerBound = null;
+        this.lowerBound = NO_LOWER_BOUND;
         this.upperBound = canonicalize(upperBounds[0]);
       }
     }
@@ -591,7 +592,7 @@ public final class $Gson$Types {
     }
 
     public Type[] getLowerBounds() {
-      return lowerBound != null ? new Type[] {lowerBound} : EMPTY_TYPE_ARRAY;
+      return lowerBound != NO_LOWER_BOUND ? new Type[] {lowerBound} : EMPTY_TYPE_ARRAY;
     }
 
     @Override
@@ -602,12 +603,13 @@ public final class $Gson$Types {
     @Override
     public int hashCode() {
       // this equals Arrays.hashCode(getLowerBounds()) ^ Arrays.hashCode(getUpperBounds());
-      return (lowerBound != null ? 31 + lowerBound.hashCode() : 1) ^ (31 + upperBound.hashCode());
+      return (lowerBound != NO_LOWER_BOUND ? 31 + lowerBound.hashCode() : 1)
+          ^ (31 + upperBound.hashCode());
     }
 
     @Override
     public String toString() {
-      if (lowerBound != null) {
+      if (lowerBound != NO_LOWER_BOUND) {
         return "? super " + typeToString(lowerBound);
       } else if (upperBound == Object.class) {
         return "?";

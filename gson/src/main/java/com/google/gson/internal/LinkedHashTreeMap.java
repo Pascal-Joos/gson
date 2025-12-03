@@ -725,17 +725,8 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
         if (leavesSkipped == 0) {
           // Pop right, center and left, then make center the top of the stack.
           Node<K, V> right = stack;
-          if (right == null) {
-            throw new IllegalStateException();
-          }
           Node<K, V> center = right.parent;
-          if (center == null) {
-            throw new IllegalStateException();
-          }
           Node<K, V> left = center.parent;
-          if (left == null) {
-            throw new IllegalStateException();
-          }
           center.parent = left.parent;
           stack = center;
           // Construct a tree.
@@ -745,6 +736,7 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
           left.parent = center;
           right.parent = center;
         } else if (leavesSkipped == 1) {
+          // Pop right and center, then make center the top of the stack.
           Node<K, V> right = stack;
           Node<K, V> center = right.parent;
           stack = center;

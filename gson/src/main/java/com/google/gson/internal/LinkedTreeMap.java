@@ -380,6 +380,9 @@ public final class LinkedTreeMap<K, V> extends AbstractMap<K, V> implements Seri
   private void rotateLeft(Node<K, V> root) {
     Node<K, V> left = root.left;
     Node<K, V> pivot = root.right;
+    if (pivot == null) {
+      return;
+    }
     Node<K, V> pivotLeft = pivot.left;
     Node<K, V> pivotRight = pivot.right;
 

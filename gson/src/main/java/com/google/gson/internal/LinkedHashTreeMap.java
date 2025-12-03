@@ -253,7 +253,9 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
     if (unlink) {
       node.prev.next = node.next;
       node.next.prev = node.prev;
-      node.next = node.prev = null; // Help the GC (for performance)
+      @Nullable Node<K, V> gcNext = node.next;
+      @Nullable Node<K, V> gcPrev = node.prev;
+      gcNext = gcPrev = null; // Help the GC (for performance)
     }
 
     Node<K, V> left = node.left;

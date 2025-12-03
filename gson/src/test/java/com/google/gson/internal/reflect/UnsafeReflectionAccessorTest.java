@@ -19,7 +19,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.lang.reflect.Field;
-import org.junit.Test;
 
 /**
  * Unit tests for {@link UnsafeReflectionAccessor}
@@ -28,7 +27,7 @@ import org.junit.Test;
  */
 public class UnsafeReflectionAccessorTest {
 
-  //@Test
+  // @Test
   public void disabledMakeAccessibleWithUnsafe() throws Exception {
     UnsafeReflectionAccessor accessor = new UnsafeReflectionAccessor();
     Field field = ClassWithPrivateFinalFields.class.getDeclaredField("a");

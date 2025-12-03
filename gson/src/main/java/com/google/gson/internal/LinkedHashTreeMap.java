@@ -752,8 +752,8 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
     }
 
     Node<K, V> root() {
-      @Nullable Node<K, V> stackTop = this.stack;
-      if (stackTop == null || stackTop.parent != null) {
+      Node<K, V> stackTop = this.stack;
+      if (stackTop.parent != null) {
         throw new IllegalStateException();
       }
       return stackTop;

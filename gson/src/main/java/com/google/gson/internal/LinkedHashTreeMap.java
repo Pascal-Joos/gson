@@ -351,10 +351,6 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
 
       int delta = leftHeight - rightHeight;
       if (delta == -2) {
-        if (right == null) {
-          assert false : "Right child must not be null when delta == -2";
-          continue;
-        }
         Node<K, V> rightLeft = right.left;
         Node<K, V> rightRight = right.right;
         int rightRightHeight = rightRight != null ? rightRight.height : 0;

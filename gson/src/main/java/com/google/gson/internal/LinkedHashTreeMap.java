@@ -723,48 +723,22 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
        */
       for (int scale = 4; (size & scale - 1) == scale - 1; scale *= 2) {
         if (leavesSkipped == 0) {
-          if (leavesSkipped == 0) {
-            // Pop right, center and left, then make center the top of the stack.
-            Node<K, V> right = stack;
-            Node<K, V> center = right.parent;
-            if (center == null) {
-              throw new IllegalStateException("center must not be null when leavesSkipped == 0");
-            }
-            Node<K, V> left = center.parent;
-            if (left == null) {
-              throw new IllegalStateException("left must not be null when leavesSkipped == 0");
-            }
-            center.parent = left.parent;
-            stack = center;
-            // Construct a tree.
-            center.left = left;
-            center.right = right;
-            center.height = right.height + 1;
-            left.parent = center;
-            right.parent = center;
-          } else if (leavesSkipped == 1) {
-            // Pop right and center, then make center the top of the stack.
-            Node<K, V> right = stack;
-            Node<K, V> center = right.parent;
-            if (center == null) {
-              throw new IllegalStateException("center must not be null when leavesSkipped == 1");
-            }
-            stack = center;
-            // Construct a tree with no left child.
-            center.right = right;
-            center.height = right.height + 1;
-            right.parent = center;
-            leavesSkipped = 0;
-          } else if (leavesSkipped == 2) {
-            leavesSkipped = 0;
-          }
+          // Pop right, center and left, then make center the top of the stack.
+          Node<K, V> right = stack;
+          Node<K, V> center = right.parent;
+          Node<K, V> left = center.parent;
+          center.parent = left.parent;
+          stack = center;
+          // Construct a tree.
+          center.left = left;
+          center.right = right;
+          center.height = right.height + 1;
+          left.parent = center;
+          right.parent = center;
         } else if (leavesSkipped == 1) {
           // Pop right and center, then make center the top of the stack.
           Node<K, V> right = stack;
           Node<K, V> center = right.parent;
-          if (center == null) {
-            throw new IllegalStateException("center must not be null when leavesSkipped == 1");
-          }
           stack = center;
           // Construct a tree with no left child.
           center.right = right;

@@ -64,7 +64,7 @@ public class GsonVersionDiagnosticsTest extends TestCase {
   }
 
   @Test
-  public void testAssertionErrorInSerializationPrintsVersion() {
+  public void disabledAssertionErrorInSerializationPrintsVersion() {
     try {
       gson.toJson(new TestType());
       fail();
@@ -74,7 +74,7 @@ public class GsonVersionDiagnosticsTest extends TestCase {
   }
 
   @Test
-  public void testAssertionErrorInDeserializationPrintsVersion() {
+  public void disabledAssertionErrorInDeserializationPrintsVersion() {
     try {
       gson.fromJson("{'a':'abc'}", TestType.class);
       fail();

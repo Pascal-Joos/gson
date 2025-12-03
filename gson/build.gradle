@@ -24,6 +24,37 @@ sourceCompatibility = 1.17
 targetCompatibility = 1.17
 
 sourceSets.main.java.exclude("**/module-info.java")
+test {
+    // Ensure all necessary modules are open for reflection
+    jvmArgs = [
+        '--add-opens=java.base/java.lang=ALL-UNNAMED',
+        '--add-opens=java.base/java.lang.reflect=ALL-UNNAMED',
+        '--add-opens=java.base/java.text=ALL-UNNAMED',
+        '--add-opens=java.base/java.io=ALL-UNNAMED',
+        '--add-opens=java.base/java.lang.ref=ALL-UNNAMED',
+        '--add-opens=java.base/java.util=ALL-UNNAMED'
+    ]
+}
+// Task to generate GsonBuildConfig.java from template
+def generateGsonBuildConfig = tasks.register('generateGsonBuildConfig') {
+    def templateFile = file("src/main/java-templates/com/google/gson/internal/GsonBuildConfig.java")
+    def outputDir = file("src/main/java/com/google/gson/internal")
+    def outputFile = file("src/main/java/com/google/gson/internal/GsonBuildConfig.java")
+    inputs.file(templateFile)
+    outputs.file(outputFile)
+    doLast {
+        if (!outputDir.exists()) {
+            outputDir.mkdirs()
+        }
+        def content = templateFile.text.replace("\${project.version}", project.version)
+        outputFile.text = content
+    }
+}
+
+// Ensure the file is generated before Java compilation
+tasks.withType(JavaCompile).configureEach {
+    dependsOn(generateGsonBuildConfig)
+}
 dependencies {
     testImplementation "junit:junit:4.12"
 

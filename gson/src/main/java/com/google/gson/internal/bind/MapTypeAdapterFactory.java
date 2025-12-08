@@ -199,7 +199,8 @@ public final class MapTypeAdapterFactory implements TypeAdapterFactory {
       } else {
         in.beginObject();
         while (in.hasNext()) {
-          JsonReaderInternalAccess.INSTANCE.promoteNameToValue(in);
+          java.util.Objects.requireNonNull(JsonReaderInternalAccess.INSTANCE)
+              .promoteNameToValue(in);
           K key = keyTypeAdapter.read(in);
           V value = valueTypeAdapter.read(in);
           V replaced = map.put(key, value);

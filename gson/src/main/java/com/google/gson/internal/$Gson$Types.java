@@ -48,8 +48,20 @@ public final class $Gson$Types {
    * @return a {@link java.io.Serializable serializable} parameterized type.
    */
   public static ParameterizedType newParameterizedTypeWithOwner(
-      Type ownerType, Type rawType, Type... typeArguments) {
+      @Nullable Type ownerType, Type rawType, Type... typeArguments) {
     return new ParameterizedTypeImpl(ownerType, rawType, typeArguments);
+  }
+
+  /**
+   * Returns a new parameterized type, applying {@code typeArguments} to {@code rawType}.
+   *
+   * <p>This is equivalent to calling {@link #newParameterizedTypeWithOwner(Type, Type, Type...)}
+   * with a {@code null} owner type, but avoids passing {@code null} at call sites.
+   *
+   * @return a {@link java.io.Serializable serializable} parameterized type.
+   */
+  public static ParameterizedType newParameterizedType(Type rawType, Type... typeArguments) {
+    return newParameterizedTypeWithOwner(null, rawType, typeArguments);
   }
 
   /**
@@ -217,7 +229,7 @@ public final class $Gson$Types {
     }
   }
 
-  static int hashCodeOrZero(Object o) {
+  static int hashCodeOrZero(@Nullable Object o) {
     return o != null ? o.hashCode() : 0;
   }
 
@@ -462,11 +474,11 @@ public final class $Gson$Types {
   }
 
   private static final class ParameterizedTypeImpl implements ParameterizedType, Serializable {
-    private final Type ownerType;
+    private final @Nullable Type ownerType;
     private final Type rawType;
     private final Type[] typeArguments;
 
-    public ParameterizedTypeImpl(Type ownerType, Type rawType, Type... typeArguments) {
+    public ParameterizedTypeImpl(@Nullable Type ownerType, Type rawType, Type... typeArguments) {
       // require an owner type if the raw type needs it
       if (rawType instanceof Class<?>) {
         Class<?> rawTypeAsClass = (Class<?>) rawType;
@@ -494,7 +506,7 @@ public final class $Gson$Types {
       return rawType;
     }
 
-    public Type getOwnerType() {
+    public @Nullable Type getOwnerType() {
       return ownerType;
     }
 

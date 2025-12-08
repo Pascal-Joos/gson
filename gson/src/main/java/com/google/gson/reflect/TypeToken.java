@@ -290,8 +290,8 @@ public class TypeToken<T> {
    * {@code rawType}.
    */
   public static TypeToken<?> getParameterized(Type rawType, Type... typeArguments) {
-    return new TypeToken<Object>(
-        $Gson$Types.newParameterizedTypeWithOwner(null, rawType, typeArguments));
+
+    return new TypeToken<Object>($Gson$Types.newParameterizedType(rawType, typeArguments));
   }
 
   /**

@@ -263,7 +263,6 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
       }
       prev.next = next;
       node.next.prev = node.prev;
-      node.next = node.prev = null; // Help the GC (for performance)
     }
 
     Node<K, V> left = node.left;
@@ -746,7 +745,7 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
           if (right == null) {
             throw new IllegalStateException();
           }
-          Node<K, V> center = right.parent;
+          Node<K, V> center = java.util.Objects.requireNonNull(right.parent);
           if (center == null) {
             throw new IllegalStateException();
           }

@@ -754,7 +754,8 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
           if (left == null) {
             throw new IllegalStateException();
           }
-          center.parent = left.parent;
+          Node<K, V> parent = left.parent;
+          center.parent = parent;
           stack = center;
           // Construct a tree.
           center.left = left;

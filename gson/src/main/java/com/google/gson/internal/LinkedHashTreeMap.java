@@ -747,7 +747,13 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
             throw new IllegalStateException();
           }
           Node<K, V> center = right.parent;
+          if (center == null) {
+            throw new IllegalStateException();
+          }
           Node<K, V> left = center.parent;
+          if (left == null) {
+            throw new IllegalStateException();
+          }
           center.parent = left.parent;
           stack = center;
           // Construct a tree.
@@ -763,11 +769,15 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
             throw new IllegalStateException();
           }
           Node<K, V> center = right.parent;
+          if (center == null) {
+            throw new IllegalStateException();
+          }
           stack = center;
           // Construct a tree with no left child.
           center.right = right;
           center.height = right.height + 1;
           right.parent = center;
+        } else if (leavesSkipped == 2) {
           leavesSkipped = 0;
         } else if (leavesSkipped == 2) {
           leavesSkipped = 0;

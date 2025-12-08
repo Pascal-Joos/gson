@@ -112,11 +112,13 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
     size = 0;
     modCount++;
 
-    // Clear all links to help GC
+    // Clear all links to help GC without assigning null to @NonNull fields
     Node<K, V> header = this.header;
     for (Node<K, V> e = header.next; e != header; ) {
       Node<K, V> next = e.next;
-      e.next = e.prev = null;
+      // Make each node self-referential so next/prev are never null
+      e.next = e;
+      e.prev = e;
       e = next;
     }
 

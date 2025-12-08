@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Gson authors
+ * Copyright (C) 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.google.gson.internal.reflect;
 
 import com.google.gson.JsonIOException;
@@ -22,19 +23,28 @@ import java.lang.reflect.Method;
 import javax.annotation.Nullable;
 
 /**
- * An implementation of {@link ReflectionAccessor} based on {@link Unsafe}.
+ * ReflectionAccessor implementation based on {@code sun.misc.Unsafe}.
  *
- * <p>NOTE: This implementation is designed for Java 9. Although it should work with earlier Java
- * releases, it is better to use {@link PreJava9ReflectionAccessor} for them.
+ * <p>This implementation falls back to {@link PreJava9ReflectionAccessor} if {@code Unsafe} is not
+ * available.
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
-final class UnsafeReflectionAccessor extends ReflectionAccessor {
+public final class UnsafeReflectionAccessor extends ReflectionAccessor {
 
-  @Nullable private static Class unsafeClass;
-  @Nullable private final Object theUnsafe = getUnsafeInstance();
-  @Nullable private final Field overrideField = getOverrideField();
+  private static final ReflectionAccessor instance = new UnsafeReflectionAccessor();
 
-  /** {@inheritDoc} */
+  public static ReflectionAccessor getInstance() {
+    return instance;
+  }
+
+  private static @Nullable Class<?> unsafeClass = null;
+  private static @Nullable Object theUnsafe;
+  private static @Nullable Field overrideField;
+
+  static {
+    theUnsafe = getUnsafeInstance();
+    overrideField = getOverrideField();
+  }
+
   @Override
   public void makeAccessible(AccessibleObject ao) {
     boolean success = makeAccessibleWithUnsafe(ao);
@@ -55,25 +65,22 @@ final class UnsafeReflectionAccessor extends ReflectionAccessor {
 
   // Visible for testing only
   boolean makeAccessibleWithUnsafe(AccessibleObject ao) {
-    if (theUnsafe != null && overrideField != null) {
+    if (theUnsafe != null && unsafeClass != null && overrideField != null) {
       try {
         Method method = unsafeClass.getMethod("objectFieldOffset", Field.class);
-        long overrideOffset =
-            (Long) method.invoke(theUnsafe, overrideField); // long overrideOffset =
-        // theUnsafe.objectFieldOffset(overrideField);
+        long overrideOffset = (Long) method.invoke(theUnsafe, overrideField);
         Method putBooleanMethod =
             unsafeClass.getMethod("putBoolean", Object.class, long.class, boolean.class);
-        putBooleanMethod.invoke(
-            theUnsafe, ao, overrideOffset, true); // theUnsafe.putBoolean(ao, overrideOffset, true);
+        putBooleanMethod.invoke(theUnsafe, ao, overrideOffset, true);
         return true;
-      } catch (Exception ignored) { // do nothing
+      } catch (Exception ignored) {
+        // do nothing
       }
     }
     return false;
   }
 
-  @Nullable
-  private static Object getUnsafeInstance() {
+  private static @Nullable Object getUnsafeInstance() {
     try {
       unsafeClass = Class.forName("sun.misc.Unsafe");
       Field unsafeField = unsafeClass.getDeclaredField("theUnsafe");
@@ -84,8 +91,7 @@ final class UnsafeReflectionAccessor extends ReflectionAccessor {
     }
   }
 
-  @Nullable
-  private static Field getOverrideField() {
+  private static @Nullable Field getOverrideField() {
     try {
       return AccessibleObject.class.getDeclaredField("override");
     } catch (NoSuchFieldException e) {

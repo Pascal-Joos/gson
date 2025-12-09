@@ -17,7 +17,6 @@
 
 package com.google.gson.internal;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.AbstractMap;
@@ -113,15 +112,15 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
     size = 0;
     modCount++;
 
+    // Clear all links to help GC
     Node<K, V> header = this.header;
-    if (header != null) {
-      for (Node<K, V> e = header.next; e != header; ) {
-        Node<K, V> next = e.next;
-        e.next = e.prev = null;
-        e = next;
-      }
-      header.next = header.prev = header;
+    for (Node<K, V> e = header.next; e != header; ) {
+      Node<K, V> next = e.next;
+      e.next = e.prev = null;
+      e = next;
     }
+
+    header.next = header.prev = header;
   }
 
   @Nullable
@@ -251,10 +250,10 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
    * @param unlink true to also unlink this node from the iteration linked list.
    */
   void removeInternal(Node<K, V> node, boolean unlink) {
-    if (unlink && node.next != null && node.prev != null) {
+    if (unlink) {
       node.prev.next = node.next;
-      Nullability.castToNonnull(node.next).prev = node.prev;
-      node.next = node.prev = null;
+      node.next.prev = node.prev;
+      node.next = node.prev = null; // Help the GC (for performance)
     }
 
     Node<K, V> left = node.left;
@@ -262,8 +261,17 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
     Node<K, V> originalParent = node.parent;
     if (left != null && right != null) {
 
+      /*
+       * To remove a node with both left and right subtrees, move an
+       * adjacent node from one of those subtrees into this node's place.
+       *
+       * Removing the adjacent node may change this node's subtrees. This
+       * node may no longer have two subtrees once the adjacent node is
+       * gone!
+       */
+
       Node<K, V> adjacent = (left.height > right.height) ? left.last() : right.first();
-      removeInternal(adjacent, false);
+      removeInternal(adjacent, false); // takes care of rebalance and size--
 
       int leftHeight = 0;
       left = node.left;
@@ -463,7 +471,7 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
     @Nullable Node<K, V> parent;
     @Nullable Node<K, V> left;
     @Nullable Node<K, V> right;
-    @Nullable Node<K, V> next;
+    Node<K, V> next;
     @Nullable Node<K, V> prev;
     @Nullable final K key;
     final int hash;
@@ -753,7 +761,7 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
   }
 
   private abstract class LinkedTreeMapIterator<T> implements Iterator<T> {
-    @Nullable Node<K, V> next = header.next;
+    Node<K, V> next = header.next;
     @Nullable Node<K, V> lastReturned = null;
     int expectedModCount = modCount;
 

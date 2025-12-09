@@ -17,6 +17,7 @@
 
 package com.google.gson.internal;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.AbstractMap;
@@ -493,7 +494,7 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
       this.height = 1;
       this.next = next;
       this.prev = prev;
-      prev.next = this;
+      Nullability.castToNonnull(prev).next = this;
       next.prev = this;
     }
 

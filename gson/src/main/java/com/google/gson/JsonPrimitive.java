@@ -18,7 +18,6 @@ package com.google.gson;
 
 import com.google.gson.internal.$Gson$Preconditions;
 import com.google.gson.internal.LazilyParsedNumber;
-import edu.ucr.cs.riple.annotator.util.Nullability;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
@@ -57,7 +56,7 @@ public final class JsonPrimitive extends JsonElement {
    * @param string the value to create the primitive with.
    */
   public JsonPrimitive(String string) {
-    value = $Gson$Preconditions.checkNotNull(Nullability.castToNonnull(string));
+    value = $Gson$Preconditions.checkNotNull(string);
   }
 
   /**

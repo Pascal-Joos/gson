@@ -1,0 +1,21 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method alone, `hierarchyType` can be null because:
+
+1. There is no local declaration or assignment of `hierarchyType` inside the method `create`, so it must be a field (likely of the enclosing class).
+2. The only relevant control-flow in the method is:
+   - If `exactType != null`, the right-hand side of the conditional operator is not evaluated, so `hierarchyType` is never used.
+   - If `exactType == null`, the expression `hierarchyType.isAssignableFrom(type.getRawType())` is evaluated.
+3. There is no null-check on `hierarchyType` before this call. Thus, unless the class’s constructor or other invariants guarantee that `hierarchyType` is non-null whenever `exactType == null`, a `NullPointerException` is possible.
+4. Those guarantees are not shown in the snippet. Based solely on the provided code, we cannot conclude that `hierarchyType` is always non-null in all code paths where it is dereferenced.
+
+Therefore, without additional information about how `hierarchyType` is initialized and constrained (e.g., via constructors or factory methods), we cannot safely assume that it is never null at the dereference site. Its nullness status is unknown from this snippet alone.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Show the declaration of `hierarchyType` (field or variable), including its type and any annotations (e.g., @NonNull).]]></request>
+        <request><![CDATA[Show the constructors and factory methods of the enclosing class that initialize `hierarchyType` and `exactType`.]]></request>
+    </requests>
+</response>
+```

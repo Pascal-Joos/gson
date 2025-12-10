@@ -1,0 +1,59 @@
+```xml
+<response>
+    <reason><![CDATA[
+The method is from Gson’s `JsonParser`:
+
+```java
+public static JsonElement parse(JsonReader reader) throws JsonParseException {
+    boolean isEmpty = true;
+    try {
+      reader.peek();
+      isEmpty = false;
+      return TypeAdapters.JSON_ELEMENT.read(reader);
+    } catch (EOFException e) {
+      if (isEmpty) {
+        return JsonNull.INSTANCE;
+      }
+      throw new JsonSyntaxException(e);
+    } ...
+}
+```
+
+Key points:
+
+1. **Control flow within `parse`**  
+   - On the main (non-exceptional) path, the method simply returns the result of:
+     ```java
+     return TypeAdapters.JSON_ELEMENT.read(reader);
+     ```
+   - All other paths either:
+     - Return `JsonNull.INSTANCE` (a non-null singleton), or
+     - Throw an exception.
+
+   Therefore, the only way `parse` could return `null` is if `TypeAdapters.JSON_ELEMENT.read(reader)` itself returns `null`.
+
+2. **Contract of `TypeAdapters.JSON_ELEMENT`**  
+   - `TypeAdapters.JSON_ELEMENT` is a `TypeAdapter<JsonElement>`.
+   - In Gson, the type adapter for `JsonElement` is implemented to always map JSON values to a non-null `JsonElement` instance:
+     - JSON `null` → `JsonNull.INSTANCE` (not `null`)
+     - JSON primitive → `JsonPrimitive`
+     - JSON array → `JsonArray`
+     - JSON object → `JsonObject`
+   - The adapter does not use `null` as a representation for any valid JSON value; instead it uses `JsonNull.INSTANCE` for JSON nulls.
+   - Gson’s internal code and public API consistently treat `JsonElement` as non-null; callers are expected to handle JSON null via `isJsonNull()` / `JsonNull.INSTANCE`, not Java `null`.
+
+3. **Exception handling**  
+   - Input that is malformed or prematurely terminated is handled by throwing `JsonSyntaxException` / `JsonIOException`, not by returning `null`.
+   - Completely empty documents (after `peek()` throws `EOFException` while `isEmpty == true`) are explicitly mapped to `JsonNull.INSTANCE`, again not `null`.
+
+4. **Implication for nullability**  
+   - Under the standard Gson implementation and assumptions (i.e., `TypeAdapters.JSON_ELEMENT` not being replaced or modified), `read(reader)` is guaranteed to return a non-null `JsonElement`.
+   - There is no code path in the provided method that converts a `null` return into something else or checks for null; its correctness relies on the invariant that the type adapter never returns `null`.
+
+Given the documented behavior and design of Gson's `JsonElement` adapter, the expression `TypeAdapters.JSON_ELEMENT.read(reader)` is not expected or allowed to be `null in normal use. The only way it could be `null` would be if the library's internals were modified in a way that breaks its contract, which is outside the intended/normal scenario.
+
+Therefore, under the library's specified behavior, this expression cannot be null.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

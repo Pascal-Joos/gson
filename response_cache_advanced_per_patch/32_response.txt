@@ -1,0 +1,96 @@
+```xml
+<response>
+    <reason><![CDATA[
+We need to know whether `center` at:
+
+    Node<K, V> right = stack;
+    Node<K, V> center = right.parent;
+    Node<K, V> left = center.parent;
+
+can be null when used.
+
+Within the `if (leavesSkipped == 0)` branch, these lines appear inside the loop:
+
+    for (int scale = 4; (size & scale - 1) == scale - 1; scale *= 2) {
+        if (leavesSkipped == 0) {
+          // Pop right, center and left, then make center the top of the stack.
+          Node<K, V> right = stack;
+          Node<K, V> center = right.parent;
+          Node<K, V> left = center.parent;
+          center.parent = left.parent;
+          stack = center;
+          ...
+        }
+
+Before entering this block, `stack` is updated only in this method as:
+
+1) At the start of `add`:
+
+    node.left = node.parent = node.right = null;
+    node.height = 1;
+    ...
+    node.parent = stack;
+    stack = node; // Stack push.
+
+So when you push the new `node`:
+- `node.parent` is set to the *previous* `stack`.
+- Then `stack` is set to `node`.
+
+Thus, after a single call to `add`, the top of the stack (`stack`) has:
+- `stack` = newly added node
+- `stack.parent` = the previous top of stack (or null if it was empty)
+
+The combining loop:
+
+    for (int scale = 4; (size & scale - 1) == scale - 1; scale *= 2) {
+
+runs only when `size` satisfies `(size & (scale - 1)) == scale - 1`. Those are specific sizes (e.g., 3, 7, 15, …) where there are enough nodes already pushed to perform a merge.
+
+Within the `leavesSkipped == 0` branch, the comment describes the expected structure:
+
+> Pop right, center and left, then make center the top of the stack.
+
+This assumes that:
+- `stack` (right) is not null,
+- `right.parent` (center) is not null, and
+- `center.parent` (left) is not null.
+
+But in this method as given, there is **no explicit check** that:
+- `stack` has a non-null `parent`, or
+- that `center.parent` is non-null.
+
+The validity of these assumptions depends entirely on invariants about the `stack` prior to each combine operation. Those invariants are not fully visible from this method alone because:
+- `stack` is a field shared across multiple calls to `add`.
+- The initial value of `stack` is not shown.
+- How many nodes are on the stack, and which of them have non-null `parent` pointers, is the result of previous `add` calls and previous combine operations.
+- Nothing in this method alone logically *proves* that at the point where the `scale` loop executes with `leavesSkipped == 0`, there must be at least three nodes linked via `.parent` from `stack`.
+
+For example, if this were the very first time the `scale` condition hits and the current `stack` chain has fewer than 3 linked nodes (or if the very first node was pushed when `stack` was null so the bottom node’s `parent` is null), then `center.parent` could be null. The loop and logic are clearly written under the assumption of a pre‑established invariant that such a situation cannot occur, but that invariant is not derivable from this snippet alone.
+
+Because:
+- `center` is obtained as `right.parent`, and
+- `right` is `stack`,
+- and the code guarantees neither that `stack` is non-null nor that `stack.parent` and `stack.parent.parent` are non-null at the type level or via explicit checks,
+
+it is not possible from this method alone to *prove* that `center` (or `left`) cannot be null.
+
+Whether it is actually safe depends on guarantees from:
+- the constructor or initialization of `stack`,
+- prior operations maintaining a strict invariant on the stack depth and parent links,
+- the logic surrounding `size`, `leavesToSkip`, and `leavesSkipped` across all `add` invocations.
+
+Those are outside the shown method.
+
+Therefore, using only this method, we cannot definitively exclude the possibility that `center` is null.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[
+Provide:
+1) The declaration and initialization of the `stack` field.
+2) The full class containing this `add` method (especially any other methods that manipulate `stack`, `size`, `leavesToSkip`, and `leavesSkipped`).
+3) Any documented invariants about the "stack" structure (e.g., that combine operations only run when at least three elements are on the stack).
+        ]]></request>
+    </requests>
+</response>
+```

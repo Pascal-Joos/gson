@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public char charAt(int i) {
+    return Nullability.castToNonnull(chars)[i];
+}
+  ```
+    ]]>
+  </code>
+</response>

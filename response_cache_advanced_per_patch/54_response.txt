@@ -1,0 +1,29 @@
+```xml
+<response>
+    <reason><![CDATA[
+Based solely on the provided method:
+
+    public int length() {
+        return chars.length;
+    }
+
+there is no information about:
+- how `chars` is declared (field vs local),
+- where and how `chars` is initialized,
+- whether there are any invariants or class contracts (e.g., constructor always initializes `chars` to a non-null array),
+- whether `chars` can be reassigned elsewhere in the class to `null`,
+- or whether external code can modify `chars`.
+
+Without that surrounding context, both of the following are possible on some execution path:
+- `chars` is always initialized to a non-null array (then it cannot be null here), or
+- `chars` might never be initialized or later set to `null` (then it can be null here, causing a NullPointerException at `chars.length`).
+
+Since the nullability of `chars` entirely depends on code and contracts that are not shown, a definitive determination cannot be made from this method alone.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Show the declaration of `chars` (including its type and whether it is a field, parameter, or local variable).]]></request>
+        <request><![CDATA[Show all constructors and methods that assign to `chars`, including any factory or builder code that might affect its initialization.]]></request>
+    </requests>
+</response>
+```

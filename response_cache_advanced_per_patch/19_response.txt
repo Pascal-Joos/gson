@@ -1,0 +1,22 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  Node(Node<K, V> parent, K key, int hash, Node<K, V> next,  Node<K, V> prev) {
+        this.parent = parent;
+        this.key = key;
+        this.hash = hash;
+        this.height = 1;
+        this.next = next;
+        this.prev = prev;
+        if (prev != null) {
+          prev.next = this;
+        }
+        if (next != null) {
+          next.prev = this;
+        }
+  }
+  ```
+    ]]>
+  </code>
+</response>

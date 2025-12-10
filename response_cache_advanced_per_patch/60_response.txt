@@ -1,0 +1,46 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Override
+  public Map<K, V> read(JsonReader in) throws IOException {
+    JsonToken peek = in.peek();
+    if (peek == JsonToken.NULL) {
+      in.nextNull();
+      return null;
+    }
+
+    Map<K, V> map = constructor.construct();
+
+    if (peek == JsonToken.BEGIN_ARRAY) {
+      in.beginArray();
+      while (in.hasNext()) {
+        in.beginArray(); // entry array
+        K key = keyTypeAdapter.read(in);
+        V value = valueTypeAdapter.read(in);
+        V replaced = map.put(key, value);
+        if (replaced != null) {
+          throw new JsonSyntaxException("duplicate key: " + key);
+        }
+        in.endArray();
+      }
+      in.endArray();
+    } else {
+      in.beginObject();
+      while (in.hasNext()) {
+        Nullability.castToNonnull(JsonReaderInternalAccess.INSTANCE).promoteNameToValue(in);
+        K key = keyTypeAdapter.read(in);
+        V value = valueTypeAdapter.read(in);
+        V replaced = map.put(key, value);
+        if (replaced != null) {
+          throw new JsonSyntaxException("duplicate key: " + key);
+        }
+      }
+      in.endObject();
+    }
+    return map;
+  }
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,12 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public int length() {
+        char[] localChars = chars;
+        return localChars == null ? 0 : localChars.length;
+  }
+  ```
+    ]]>
+  </code>
+</response>

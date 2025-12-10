@@ -1,0 +1,94 @@
+```xml
+<response>
+    <reason><![CDATA[
+We need to know whether `right` can be null at the line:
+
+    Node<K, V> center = right.parent;
+
+There are two occurrences of this pattern in the method, both inside the `for` loop:
+
+1) In the `leavesSkipped == 0` branch:
+   ```java
+   Node<K, V> right = stack;
+   Node<K, V> center = right.parent;
+   Node<K, V> left = center.parent;
+   center.parent = left.parent;
+   stack = center;
+   ...
+   ```
+
+2) In the `leavesSkipped == 1` branch:
+   ```java
+   Node<K, V> right = stack;
+   Node<K, V> center = right.parent;
+   stack = center;
+   ...
+   ```
+
+In both cases, `right` is assigned as:
+
+    Node<K, V> right = stack;
+
+So `right` is null if and only if `stack` is null at that point.
+
+Within this `add` method:
+- `stack` is assigned only here: `stack = node;` and later possibly `stack = center;` inside the loop.
+- Before `stack = node;`, we never read `stack` in this method.
+- The loop runs after `stack = node;` and `size++`.
+
+Consider the first time we enter the loop in this method call:
+
+- Locally in this call, `stack` must have been set to a non-null `node` just before the loop:
+  ```java
+  node.parent = stack;
+  stack = node;
+  size++;
+  ...
+  for (...) {
+      Node<K, V> right = stack; // right is at least the node we just pushed
+  }
+  ```
+  So on the first iteration in this invocation, `stack` (and thus `right`) cannot be null.
+
+On subsequent iterations of the loop (due to increasing `scale`), we may have reassigned `stack` to `center` in an earlier iteration. For the branches that reassign `stack`:
+
+- `leavesSkipped == 0` branch:
+  ```java
+  Node<K, V> right = stack;         // right is stack
+  Node<K, V> center = right.parent; // uses right
+  Node<K, V> left = center.parent;
+  center.parent = left.parent;
+  stack = center;                   // stack becomes center, which is non-null
+  ```
+  Here, `center` is assigned from `right.parent`. For this to execute without NullPointerException, both `right` and `right.parent` must be non-null. But the question is: *can* `right` be null? If `right` were null, `Node<K, V> center = right.parent;` would throw an NPE. Syntactically there is no guard against `stack` being null. Thus, from the method’s local code alone, nothing prevents `stack` from being null when entering the loop, apart from assumptions about how the class is used.
+
+- `leavesSkipped == 1` branch:
+  ```java
+  Node<K, V> right = stack;         // right is stack
+  Node<K, V> center = right.parent; // uses right
+  stack = center;
+  ...
+  ```
+  Same situation: a dereference of `right` with no null check.
+
+There is no explicit null check anywhere in `add` that guarantees `stack` is non-null before the loop. Whether `stack` is ever null when the loop condition `(size & (scale - 1)) == scale - 1` holds depends on:
+
+- The initial value of `stack` before the very first call to `add`.
+- Whether other methods can mutate `stack` to null between calls to `add`.
+- Invariants of the surrounding data structure class (e.g., that `stack` is always non-null whenever the combine condition holds).
+
+None of those invariants are specified in the provided snippet.
+
+From the snippet alone:
+- The code *assumes* `stack` is non-null when the loop body runs.
+- But this is an assumption about the class invariant, not a guarantee enforced locally by this method.
+- Without seeing the class-level invariant on `stack` (e.g., a constructor that sets it, or a proof that `size` and `stack` are always correlated such that the loop cannot run when `stack` is null), we cannot guarantee that `stack` (and hence `right`) is never null.
+
+Therefore, based solely on the given code and without additional class-level guarantees, we cannot conclusively say that `right` can never be null. The possibility depends on external invariants not present here.]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the surrounding class definition that declares `stack`, including its initialization and all methods that modify `stack`.]]></request>
+        <request><![CDATA[Provide any documented invariants or comments describing when `stack` may be null and how `size`, `leavesSkipped`, and `leavesToSkip` are initialized and maintained.]]></request>
+    </requests>
+</response>
+```

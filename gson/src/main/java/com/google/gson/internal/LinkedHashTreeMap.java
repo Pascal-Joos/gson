@@ -101,6 +101,9 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
       throw new NullPointerException("key == null");
     }
     Node<K, V> created = find(key, true);
+    if (created == null) {
+      throw new NullPointerException("created == null");
+    }
     V result = created.value;
     created.value = value;
     return result;

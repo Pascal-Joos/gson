@@ -289,14 +289,9 @@ public class TypeToken<T> {
    * Gets type literal for the parameterized type represented by applying {@code typeArguments} to
    * {@code rawType}.
    */
-  /**
-   * Gets type literal for the parameterized type represented by applying {@code typeArguments} to
-   * {@code rawType}.
-   */
   public static TypeToken<?> getParameterized(Type rawType, Type... typeArguments) {
-    Type ownerType = (rawType instanceof Class) ? ((Class<?>) rawType).getEnclosingClass() : null;
     return new TypeToken<Object>(
-        $Gson$Types.newParameterizedTypeWithOwner(ownerType, rawType, typeArguments));
+        $Gson$Types.newParameterizedTypeWithOwner(null, rawType, typeArguments));
   }
 
   /**

@@ -727,13 +727,19 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
           Node<K, V> right = stack;
           Node<K, V> center = right.parent;
           Node<K, V> left = center.parent;
-          center.parent = left.parent;
+          if (left != null) {
+            center.parent = left.parent;
+          } else {
+            center.parent = null;
+          }
           stack = center;
           // Construct a tree.
           center.left = left;
           center.right = right;
           center.height = right.height + 1;
-          left.parent = center;
+          if (left != null) {
+            left.parent = center;
+          }
           right.parent = center;
         } else if (leavesSkipped == 1) {
           // Pop right and center, then make center the top of the stack.

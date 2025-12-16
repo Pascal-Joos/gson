@@ -486,7 +486,6 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
     }
 
     /** Create a regular entry */
-    /** Create a regular entry */
     Node(Node<K, V> parent, K key, int hash, Node<K, V> next, @Nullable Node<K, V> prev) {
       this.parent = parent;
       this.key = key;
@@ -494,12 +493,8 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
       this.height = 1;
       this.next = next;
       this.prev = prev;
-      if (prev != null) {
-        prev.next = this;
-      }
-      if (next != null) {
-        next.prev = this;
-      }
+      prev.next = this;
+      next.prev = this;
     }
 
     @Nullable

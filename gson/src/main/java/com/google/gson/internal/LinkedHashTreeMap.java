@@ -251,8 +251,14 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
    */
   void removeInternal(Node<K, V> node, boolean unlink) {
     if (unlink) {
-      node.prev.next = node.next;
-      node.next.prev = node.prev;
+      Node<K, V> prev = node.prev;
+      Node<K, V> next = node.next;
+      if (prev != null) {
+        prev.next = next;
+      }
+      if (next != null) {
+        next.prev = prev;
+      }
       node.next = node.prev = null; // Help the GC (for performance)
     }
 

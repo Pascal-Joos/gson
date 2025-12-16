@@ -98,7 +98,22 @@ public final class Streams {
 
     /** A mutable char sequence pointing at a single char[]. */
     static class CurrentWrite implements CharSequence {
-      char[] chars;
+      /** A mutable char sequence pointing at a single char[]. */
+      static class CurrentWrite implements CharSequence {
+        @Nullable char[] chars = null;
+
+        public int length() {
+          return chars.length;
+        }
+
+        public char charAt(int i) {
+          return chars[i];
+        }
+
+        public CharSequence subSequence(int start, int end) {
+          return new String(chars, start, end - start);
+        }
+      }
 
       public int length() {
         return chars.length;

@@ -1,0 +1,15 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+    Node<K, V> root() {
+      Node<K, V> stackTop = this.stack;
+      if (stackTop == null || stackTop.parent != null) {
+        throw new IllegalStateException();
+      }
+      return stackTop;
+    }
+  ```
+    ]]>
+  </code>
+</response>

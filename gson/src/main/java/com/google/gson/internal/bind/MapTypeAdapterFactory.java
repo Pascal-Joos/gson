@@ -199,11 +199,7 @@ public final class MapTypeAdapterFactory implements TypeAdapterFactory {
       } else {
         in.beginObject();
         while (in.hasNext()) {
-          JsonReaderInternalAccess instance = JsonReaderInternalAccess.INSTANCE;
-          if (instance == null) {
-            throw new IllegalStateException("JsonReaderInternalAccess.INSTANCE is null");
-          }
-          instance.promoteNameToValue(in);
+          JsonReaderInternalAccess.INSTANCE.promoteNameToValue(in);
           K key = keyTypeAdapter.read(in);
           V value = valueTypeAdapter.read(in);
           V replaced = map.put(key, value);

@@ -723,7 +723,9 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
        */
       for (int scale = 4; (size & scale - 1) == scale - 1; scale *= 2) {
         if (leavesSkipped == 0) {
-          // Pop right, center and left, then make center the top of the stack.
+          if (stack == null || stack.parent == null || stack.parent.parent == null) {
+            break;
+          }
           Node<K, V> right = stack;
           Node<K, V> center = right.parent;
           Node<K, V> left = center.parent;
@@ -736,7 +738,9 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
           left.parent = center;
           right.parent = center;
         } else if (leavesSkipped == 1) {
-          // Pop right and center, then make center the top of the stack.
+          if (stack == null || stack.parent == null) {
+            break;
+          }
           Node<K, V> right = stack;
           Node<K, V> center = right.parent;
           stack = center;

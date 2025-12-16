@@ -813,7 +813,7 @@ public class JsonReader implements Closeable {
     } else if (p == PEEKED_DOUBLE_QUOTED) {
       result = nextQuotedValue('"');
     } else if (p == PEEKED_BUFFERED) {
-      result = peekedString == null ? "" : peekedString;
+      result = peekedString;
       peekedString = null;
     } else if (p == PEEKED_LONG) {
       result = Long.toString(peekedLong);

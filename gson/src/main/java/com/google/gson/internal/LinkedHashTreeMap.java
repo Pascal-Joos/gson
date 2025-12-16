@@ -350,7 +350,7 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
       int rightHeight = right != null ? right.height : 0;
 
       int delta = leftHeight - rightHeight;
-      if (delta == -2) {
+      if (delta == -2 && right != null) {
         Node<K, V> rightLeft = right.left;
         Node<K, V> rightRight = right.right;
         int rightRightHeight = rightRight != null ? rightRight.height : 0;
@@ -368,7 +368,7 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
           break; // no further rotations will be necessary
         }
 
-      } else if (delta == 2) {
+      } else if (delta == 2 && left != null) {
         Node<K, V> leftLeft = left.left;
         Node<K, V> leftRight = left.right;
         int leftRightHeight = leftRight != null ? leftRight.height : 0;

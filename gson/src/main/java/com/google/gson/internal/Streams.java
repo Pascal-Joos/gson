@@ -41,7 +41,11 @@ public final class Streams {
     try {
       reader.peek();
       isEmpty = false;
-      return TypeAdapters.JSON_ELEMENT.read(reader);
+      JsonElement result = TypeAdapters.JSON_ELEMENT.read(reader);
+      if (result == null) {
+        return JsonNull.INSTANCE;
+      }
+      return result;
     } catch (EOFException e) {
       /*
        * For compatibility with JSON 1.5 and earlier, we return a JsonNull for

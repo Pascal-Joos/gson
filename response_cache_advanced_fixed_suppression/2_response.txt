@@ -1,0 +1,11 @@
+<response>
+  <reason><![CDATA[
+The provided method is abstract:
+
+  public abstract T read(JsonReader in) throws IOException
+
+An abstract method has no body and therefore no implemented return paths to analyze. Whether it can return null entirely depends on the concrete implementations in subclasses, which are not provided. Since there is no body, we cannot conclude that it always returns a non-null value or that it can return null; both are possible depending on how subclasses implement it.
+
+Because no implementation is given and no other methods influence its return value (it’s directly returning a T determined by subclasses), there is insufficient information to determine if it can or cannot return null.]]></reason>
+  <value>UNKNOWN</value>
+</response>

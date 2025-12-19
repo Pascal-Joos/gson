@@ -1,0 +1,45 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the given method alone, `hierarchyType` can be dereferenced without any prior null-check or obvious local initialization. The relevant line is:
+
+    : hierarchyType.isAssignableFrom(type.getRawType());
+
+This is executed only in the branch where `exactType == null`:
+
+    boolean matches =
+        exactType != null
+            ? ...
+            : hierarchyType.isAssignableFrom(type.getRawType());
+
+So the only protection here is against `exactType` being null, not `hierarchyType`.
+
+Whether `hierarchyType` can be null depends entirely on how the surrounding class is constructed and what invariants it enforces. Typical context suggests this is from Gson's `TreeTypeAdapter.SingleTypeFactory`, where the constructor looks like:
+
+    SingleTypeFactory(Object serializer, TypeToken<?> exactType, boolean matchRawType,
+                      Class<?> hierarchyType) {
+        this.serializer = serializer instanceof JsonSerializer ? (JsonSerializer<?>) serializer : null;
+        this.deserializer = serializer instanceof JsonDeserializer ? (JsonDeserializer<?>) serializer : null;
+        this.exactType = exactType;
+        this.matchRawType = matchRawType;
+        this.hierarchyType = hierarchyType;
+    }
+
+In the Gson codebase, calls creating this factory pass either:
+
+- a non-null `exactType` and `null` for `hierarchyType`, or
+- a non-null `hierarchyType` and `null` for `exactType`.
+
+In other words, the *intended* invariant is: if `exactType == null` (the only time the `hierarchyType.isAssignableFrom(...)` branch is used), then `hierarchyType` must be non-null. That invariant is enforced by how Gson constructs these factories, not by this method itself.
+
+From the perspective of this method and the language semantics:
+
+- There is no local check to ensure `hierarchyType` is non-null.
+- The compiler does not infer non-null from `exactType == null`.
+- If some caller (or another constructor) were to violate the invariant and pass `null` for both `exactType` and `hierarchyType`, this line would throw a `NullPointerException`.
+
+Therefore, purely by analyzing this method and without assuming external construction invariants, `hierarchyType` is *not* guaranteed non-null and can be null in some possible program states. Whether that actually happens in a given codebase depends on usage, but it is definitely *possible* in terms of control flow and field usage.
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

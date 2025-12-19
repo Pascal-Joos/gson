@@ -1,0 +1,33 @@
+```xml
+<response>
+    <reason><![CDATA[
+The line in question is executed only inside the branch:
+
+    } else if (delta == 2) {
+        Node<K, V> leftLeft = left.left;
+        ...
+
+Here, `delta` is computed as:
+
+    Node<K, V> left = node.left;
+    Node<K, V> right = node.right;
+    int leftHeight = left != null ? left.height : 0;
+    int rightHeight = right != null ? right.height : 0;
+
+    int delta = leftHeight - rightHeight;
+
+For `delta == 2` to be true, we must have:
+
+    leftHeight - rightHeight == 2
+
+Since `leftHeight` is `0` when `left == null`, if `left` were `null` then the maximum value of `delta` would be `0 - 0 = 0`. Therefore `delta` cannot be `2` when `left` is `null`. In other words, the condition `delta == 2` implies `left != null`.
+
+Thus, at the point of evaluation of:
+
+    Node<K, V> leftLeft = left.left;
+
+the variable `left` is guaranteed to be non-null. Although `leftLeft` itself may be null (if `left.left` is null), the expression `left` at that line cannot be null on any feasible control-flow path in this method.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

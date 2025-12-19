@@ -1,0 +1,30 @@
+```xml
+<response>
+    <reason><![CDATA[
+Based solely on the provided method:
+
+    public int length() {
+        return chars.length;
+    }
+
+there is no information about:
+
+- Where or how `chars` is declared (field, local, parameter),
+- How `chars` is initialized,
+- Whether any constructors or methods guarantee `chars` is non-null,
+- Whether `chars` can be reassigned to null elsewhere,
+- Any annotations (e.g., @NonNull) or framework contracts that would guarantee non-nullness.
+
+Without the surrounding class definition and initialization logic, it is impossible to determine if `chars` might be null at the point of `return chars.length;`. It could be:
+- A field that is always initialized to a non-null array in all constructors (then it cannot be null), or
+- A field or variable that may not be initialized, or can be explicitly set to null (then it can be null).
+
+Since these possibilities cannot be ruled in or out from the snippet alone, the nullability of `chars` is indeterminate.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the declaration of `chars` (including its type and whether it is a field, parameter, or local variable).]]></request>
+        <request><![CDATA[Provide all constructors and any methods that assign or modify `chars`, or confirm any non-null contracts/annotations (e.g., @NonNull, @NotNull).]]></request>
+    </requests>
+</response>
+```

@@ -1,0 +1,24 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Override
+      public AtomicLongArray read(JsonReader in) throws IOException {
+        List<Long> list = new ArrayList<Long>();
+        in.beginArray();
+        while (in.hasNext()) {
+          long value = Nullability.castToNonnull(longAdapter.read(in)).longValue();
+          list.add(value);
+        }
+        in.endArray();
+        int length = list.size();
+        AtomicLongArray array = new AtomicLongArray(length);
+        for (int i = 0; i < length; ++i) {
+          array.set(i, list.get(i));
+        }
+        return array;
+  }
+  ```
+    ]]>
+  </code>
+</response>

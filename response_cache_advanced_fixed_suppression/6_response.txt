@@ -1,0 +1,37 @@
+<response>
+  <reason><![CDATA[
+The specific call site is `longAdapter.read(in)` inside two adapter implementations:
+
+1) `Gson$4.read`:
+```java
+public AtomicLong read(JsonReader in) throws IOException {
+  Number value = longAdapter.read(in);
+  return new AtomicLong(value.longValue());
+}
+```
+
+2) `Gson$5.read`:
+```java
+public AtomicLongArray read(JsonReader in) throws IOException {
+  ...
+  while (in.hasNext()) {
+    long value = longAdapter.read(in).longValue();
+    list.add(value);
+  }
+  ...
+}
+```
+
+At these call sites, the result of `longAdapter.read(in)` is:
+- Immediately dereferenced: `value.longValue()` or `longAdapter.read(in).longValue()`.
+- There is no null-check before dereferencing.
+- If `longAdapter.read(in)` could be null, these lines would throw a `NullPointerException`, which Gson would treat as an error. Gson’s own built-in `longAdapter` is implemented so that it never returns null for a numeric value; for `JsonToken.NULL` it either:
+  * is wrapped by a `TypeAdapter$1` that checks `reader.peek() == JsonToken.NULL` and returns `null`, but in that case the **outer** adapters (`Gson$4`, `Gson$5`) would immediately NPE on `longValue()`, or
+  * is not used in a context that allows `JsonToken.NULL` for primitive long values.
+
+Gson’s design for primitive numeric adapters (like the built-in long adapter referenced here) is to always produce a non-null `Number` when a value is actually read; `null` is only used to represent JSON `null` for reference types, not for primitive types that are immediately converted to `long`/`AtomicLong`/`AtomicLongArray`. The provided code assumes non-null and would otherwise be unsafe.
+
+Given this, at this specific call site, the contract of `longAdapter` is that it returns a non-null `Number`. Under that contract, `longAdapter.read(in)` cannot be null here; any JSON `null` that slipped through would result in an exception, not a tolerated null value.
+  ]]></reason>
+  <value>NO</value>
+</response>

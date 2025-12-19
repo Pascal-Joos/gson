@@ -1,0 +1,30 @@
+```xml
+<response>
+    <reason><![CDATA[
+From the provided method alone:
+
+Node<K, V> root() {
+      Node<K, V> stackTop = this.stack;
+      if (stackTop.parent != null) {
+        throw new IllegalStateException();
+      }
+      return stackTop;
+}
+
+there is no prior null check on `stackTop` (which is assigned from `this.stack`), and there is no explicit guarantee in this snippet that `this.stack` is never null.
+
+The line in question is:
+if (stackTop.parent != null) {
+
+For this expression to be safely non-null, one of the following would have to be guaranteed by other parts of the program:
+
+- `this.stack` is never null by class invariant, constructor, or API contract, and
+- That invariant is strictly maintained everywhere `this.stack` could be written.
+
+Since the snippet does not show such a guarantee, static analysis confined to this method must assume `this.stack` could be null. If `this.stack` is null, then `stackTop` is null, and accessing `stackTop.parent` would lead to a NullPointerException. Therefore, the expression `stackTop` at that line can be null, unless an external invariant (not shown) forbids it.
+
+Because we are required to decide based only on the code paths, initializations, and contracts visible in the given method (and no such contract is present), we must conclude that `stackTop` can be null at that line.
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

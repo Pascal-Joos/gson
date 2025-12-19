@@ -1,0 +1,65 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+void removeInternal(Node<K, V> node, boolean unlink) {
+    if (unlink) {
+      Nullability.castToNonnull(node.prev).next = node.next;
+      node.next.prev = node.prev;
+      node.next = node.prev = null; // Help the GC (for performance)
+    }
+
+    Node<K, V> left = node.left;
+    Node<K, V> right = node.right;
+    Node<K, V> originalParent = node.parent;
+    if (left != null && right != null) {
+
+      /*
+       * To remove a node with both left and right subtrees, move an
+       * adjacent node from one of those subtrees into this node's place.
+       *
+       * Removing the adjacent node may change this node's subtrees. This
+       * node may no longer have two subtrees once the adjacent node is
+       * gone!
+       */
+
+      Node<K, V> adjacent = (left.height > right.height) ? left.last() : right.first();
+      removeInternal(adjacent, false); // takes care of rebalance and size--
+
+      int leftHeight = 0;
+      left = node.left;
+      if (left != null) {
+        leftHeight = left.height;
+        adjacent.left = left;
+        left.parent = adjacent;
+        node.left = null;
+      }
+      int rightHeight = 0;
+      right = node.right;
+      if (right != null) {
+        rightHeight = right.height;
+        adjacent.right = right;
+        right.parent = adjacent;
+        node.right = null;
+      }
+      adjacent.height = Math.max(leftHeight, rightHeight) + 1;
+      replaceInParent(node, adjacent);
+      return;
+    } else if (left != null) {
+      replaceInParent(node, left);
+      node.left = null;
+    } else if (right != null) {
+      replaceInParent(node, right);
+      node.right = null;
+    } else {
+      replaceInParent(node, null);
+    }
+
+    rebalance(originalParent, false);
+    size--;
+    modCount++;
+}
+  ```
+    ]]>
+  </code>
+</response>

@@ -1,0 +1,20 @@
+```xml
+<response>
+    <reason><![CDATA[
+In Java, the `charAt` method returns a primitive `char`, not a reference type. Primitive types (such as `char`, `int`, `boolean`) cannot be `null` in Java; only reference types can be `null`.
+
+Your method:
+
+public char charAt(int i) {
+    return new String(chars).charAt(i);
+}
+
+- `new String(chars)` constructs a `String` object from the `char[] chars`. If `chars` itself were `null`, this line would throw a `NullPointerException` at the constructor call; it would not result in a `null` `char`.
+- `String.charAt(int index)` is specified to return a primitive `char`. Its contract does not allow it to return `null`. If `i` is out of range, it throws `StringIndexOutOfBoundsException`, not `null`.
+- The method’s return type is `char`, a primitive, so the expression at `return ...` is evaluated as a primitive `char` value, which cannot be `null`.
+
+Therefore, regardless of the state of `chars` (other than causing an exception), the expression being returned cannot be `null.`
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

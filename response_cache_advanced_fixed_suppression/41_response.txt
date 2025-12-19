@@ -1,0 +1,73 @@
+```xml
+<response>
+    <reason><![CDATA[
+We need to know whether `left` can be null at:
+
+    Node<K, V> right = stack;
+    Node<K, V> center = right.parent;
+    Node<K, V> left = center.parent;
+    center.parent = left.parent;  // <-- here
+
+Key invariants from the method:
+
+1. At the top of `add`:
+   - `node.left = node.parent = node.right = null;`
+   - `stack` is then set to `node`:
+        node.parent = stack;
+        stack = node;
+   This line is effectively `node.parent = oldStack`; `node` becomes the new top. Thus, the `parent` field is used as the link to the previous stack element. The top of the stack always has a `parent` that is either:
+   - another `Node` (the next element down), or
+   - `null` (the bottom of the stack).
+
+2. The combining loop:
+
+   ```java
+   for (int scale = 4; (size & scale - 1) == scale - 1; scale *= 2) {
+     if (leavesSkipped == 0) {
+       // Pop right, center and left, then make center the top of the stack.
+       Node<K, V> right = stack;
+       Node<K, V> center = right.parent;
+       Node<K, V> left = center.parent;
+       center.parent = left.parent;
+       ...
+     }
+     ...
+   }
+   ```
+
+   The comment “Pop right, center and left” implies there must be at least three elements on this implicit stack when the `if (leavesSkipped == 0)` branch executes.
+
+3. Conditions under which this branch executes:
+
+   - This branch runs only when:
+     - `leavesSkipped == 0`, and
+     - `(size & (scale - 1)) == scale - 1` for some `scale` (starting at 4, doubling each iteration).
+   - Each push onto `stack` is via:
+       node.parent = stack;
+       stack = node;
+     so the stack size grows one-by-one, and never skips setting `parent`.
+
+4. Can `center` be null?
+
+   - `right = stack` is the current top. If `center = right.parent` were null, that would mean there is only one element on the stack.
+   - But the algorithm’s design (a known sorted-map/tree builder pattern) performs this 3-node combine only when enough nodes have been accumulated. When `size` is at the required “one less than a multiple of 4/8/…” values, the structure has at least three nodes in the stack. Otherwise, this branch would not be entered.
+   - If `center` were null, `left = center.parent` would already dereference `null`, causing a NullPointerException at the line that defines `left`. Thus, in any actual execution reaching `center.parent = left.parent;`, `center` is non-null.
+
+5. Can `left` be null?
+
+   - `left = center.parent`. If `left` were null, it would mean `center` is the bottom of the stack (no parent).
+   - However, the comment and logic explicitly treat this branch as “Pop right, center and left”, i.e., require at least three stack elements: `left -> center -> right`. With only two elements, you couldn’t pop three.
+   - The outer algorithm, by construction, only enters this branch when there are at least three consecutively pushed nodes. In other words, for this branch to be taken, the stack has at least three nodes, so `center.parent` must be a real node, not null.
+
+6. What if the overall algorithm were misused?
+
+   - Inside `add` itself, there is no protective null-check. If a caller somehow violated the implicit invariant (e.g., corrupted `stack` or `size`, or modified `parent` links incorrectly), then `center` or `left` could be null, and a NullPointerException would occur earlier (at `left = center.parent` if `center` is null, or at `center.parent = left.parent` if `left` is null).
+   - But given normal operation consistent with the method’s own internal contracts (stack invariant preserved, `size` correctly tracking pushes), execution cannot reach `center.parent = left.parent;` with fewer than three nodes on the stack, and so `left` will not be null.
+
+Therefore, under the intended and required invariants of this method, `left` is guaranteed to be non-null when `center.parent = left.parent;` executes. If those invariants are broken externally, null is possible, but that would already have caused earlier failure.
+
+Given only the code shown and its intended stack semantics, the correct determination is that `left` cannot be null at that line in any valid execution path of this method.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

@@ -1,0 +1,22 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Nullable
+  @Override
+  public V put(K key, V value) {
+    if (key == null) {
+      throw new NullPointerException("key == null");
+    }
+    Node<K, V> created = find(key, true);
+    if (created == null) {
+      return null;
+    }
+    V result = created.value;
+    created.value = value;
+    return result;
+  }
+  ```
+    ]]>
+  </code>
+</response>

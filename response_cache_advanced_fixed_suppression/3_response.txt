@@ -1,0 +1,42 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+    Number value = longAdapter.read(in)
+
+`longAdapter` is a `TypeAdapter<Number>` used by `Gson$4.read` and `Gson$5.read` to produce `AtomicLong` and `AtomicLongArray`. Those methods both immediately dereference the result:
+
+- `Gson$4`:
+  
+      public AtomicLong read(JsonReader in) throws IOException {
+        Number value = longAdapter.read(in);
+        return new AtomicLong(value.longValue());
+      }
+
+- `Gson$5`:
+
+      public AtomicLongArray read(JsonReader in) throws IOException {
+        ...
+        while (in.hasNext()) {
+          long value = longAdapter.read(in).longValue();
+          list.add(value);
+        }
+        ...
+      }
+
+In both, `value.longValue()` is called on the result of `longAdapter.read(in)` without any null check. If `longAdapter.read(in)` could ever return `null`, these Gson-provided adapters would be inherently null-unsafe and would reliably throw `NullPointerException` for any JSON `null` numeric value. Gson instead handles JSON nulls earlier in the chain (e.g., via wrapper `TypeAdapter`s and null-handling logic):
+
+- Several adapter wrappers (`TypeAdapter$1`, `Excluder$1`, `TreeTypeAdapter`, `TypeAdapters$35$1`, etc.) explicitly propagate or return `null` where appropriate, but those are for general-purpose adapters.
+- For numeric primitives wrapped in `AtomicLong` / `AtomicLongArray`, Gson’s design treats the values as required, not nullable; the code assumes a non-null `Number`.
+
+Because:
+
+1. The only provided usages of `longAdapter.read(in)` immediately and unconditionally dereference the result.
+2. There is no intervening null-handling around this particular numeric adapter in those call sites.
+3. Gson’s standard numeric adapters for primitive-like values are implemented to **throw** on JSON `null` or invalid input, rather than return `null` (to avoid exactly such `NullPointerException`s in library code that assumes non-null),
+
+the contract at this specific call site is that `longAdapter.read(in)` must return a non-null `Number`. Null here would break Gson’s own core adapters.
+
+Therefore, at this specific call site, the result of `longAdapter.read(in)` cannot be `null`.]]></reason>
+  <value>NO</value>
+</response>

@@ -1,0 +1,113 @@
+```xml
+<response>
+    <reason><![CDATA[
+We need to determine if the *expression* `center` at the assignment `center.right = right;` can ever be null at runtime.
+
+That line appears in two branches:
+
+1) Branch when `leavesSkipped == 0`:
+   ```java
+   if (leavesSkipped == 0) {
+     // Pop right, center and left, then make center the top of the stack.
+     Node<K, V> right = stack;
+     Node<K, V> center = right.parent;
+     Node<K, V> left = center.parent;
+     center.parent = left.parent;
+     stack = center;
+     // Construct a tree.
+     center.left = left;
+     center.right = right;
+     ...
+   }
+   ```
+
+2) Branch when `leavesSkipped == 1`:
+   ```java
+   else if (leavesSkipped == 1) {
+     // Pop right and center, then make center the top of the stack.
+     Node<K, V> right = stack;
+     Node<K, V> center = right.parent;
+     stack = center;
+     // Construct a tree with no left child.
+     center.right = right;
+     ...
+   }
+   ```
+
+In both cases, `center` is assigned from `right.parent`.
+
+Key facts we can derive from the method body:
+
+- At the beginning of `add`, for the node being added:
+  ```java
+  node.left = node.parent = node.right = null;
+  node.height = 1;
+  ```
+  So a *newly added* node’s `parent` is explicitly set to `null`.
+
+- The only variable ever assigned to `stack` in this method is:
+  ```java
+  node.parent = stack;
+  stack = node; // Stack push.
+  ```
+  That means the “stack” is a singly‑linked structure via each node’s `parent` field. `stack` is the *top* of this implicit stack.
+
+- The combining loop:
+  ```java
+  for (int scale = 4; (size & scale - 1) == scale - 1; scale *= 2) {
+      ...
+      Node<K, V> right = stack;
+      Node<K, V> center = right.parent;
+      ...
+  }
+  ```
+  assumes that, when we enter one of these branches, the “stack” contains enough nodes beneath `right` via `parent` references.
+
+From the code shown **inside this method alone**, there is no direct guarantee that `right.parent` (i.e., `center`) is non-null:
+
+- Immediately before any possible first iteration of the `for` loop, we have just done:
+  ```java
+  node.parent = stack;
+  stack = node;
+  ```
+  So `stack` points to the newly-added node, whose `parent` we set to the previous top of stack. If this is only the first or one of the first additions, `stack` before this add might be `null`, making `node.parent` (`right.parent`) null.
+
+- Whether the `for` loop runs at all is controlled purely by numeric conditions on `size`:
+  ```java
+  for (int scale = 4; (size & scale - 1) == scale - 1; scale *= 2)
+  ```
+  There is no structural check that the stack actually has the required depth (e.g., at least 2 or 3 nodes). If, for some combination of `size`, `leavesToSkip`, and `leavesSkipped`, this condition becomes true before the stack is deep enough, then `right.parent` can be null.
+
+- When `leavesSkipped == 0`, the code *also* dereferences `center.parent`:
+  ```java
+  Node<K, V> left = center.parent;
+  ```
+  For that path to be safe, not only must `center` be non-null, but `center.parent` must be non-null too. This again is not guaranteed by any local condition; it relies on an implicit invariant about how many nodes are on the stack when this branch is entered.
+
+The safety of `center` therefore depends on invariants not visible in this snippet:
+
+- An invariant that the `for` loop condition being true **implies** the stack has a minimum depth of:
+  - at least 3 nodes when `leavesSkipped == 0` (so `right.parent` and `center.parent` are both non-null);
+  - at least 2 nodes when `leavesSkipped == 1` (so `right.parent` is non-null).
+
+These invariants may well be maintained by the surrounding data structure logic and by how `size`, `leavesToSkip`, and `leavesSkipped` are updated across all methods, but those guarantees are not derivable from this method in isolation.
+
+Thus:
+
+- From this method’s code alone, we **cannot** prove that `center` is always non-null.
+- We also cannot definitively prove that `center` can actually be null in a real execution, because that would require knowing:
+  - initial values and evolution of `stack`, `size`, `leavesToSkip`, `leavesSkipped`,
+  - how many prior `add` calls have been made,
+  - and any class-level invariants.
+
+Because those are not provided, we must conclude that the nullability of `center` at `center.right = right;` cannot be determined with certainty from this snippet alone.
+
+Therefore, the correct classification (given the information available) is UNKNOWN.
+    ]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the class fields (including how `stack`, `size`, `leavesToSkip`, and `leavesSkipped` are initialized) and any other methods that modify them.]]></request>
+        <request><![CDATA[State any invariant the data structure is intended to maintain about the stack depth when the combining loop runs (e.g., that by the time `(size & (scale - 1)) == scale - 1` is true with a given `leavesSkipped`, the stack always has at least N nodes).]]></request>
+    </requests>
+</response>
+```

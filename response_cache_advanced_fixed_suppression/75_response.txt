@@ -1,0 +1,45 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+@Override
+        public JsonElement read(JsonReader in) throws IOException {
+          switch (in.peek()) {
+            case STRING:
+              return new JsonPrimitive(Nullability.castToNonnull(in.nextString()));
+            case NUMBER:
+              String number = in.nextString();
+              return new JsonPrimitive(new LazilyParsedNumber(number));
+            case BOOLEAN:
+              return new JsonPrimitive(in.nextBoolean());
+            case NULL:
+              in.nextNull();
+              return JsonNull.INSTANCE;
+            case BEGIN_ARRAY:
+              JsonArray array = new JsonArray();
+              in.beginArray();
+              while (in.hasNext()) {
+                array.add(read(in));
+              }
+              in.endArray();
+              return array;
+            case BEGIN_OBJECT:
+              JsonObject object = new JsonObject();
+              in.beginObject();
+              while (in.hasNext()) {
+                object.add(in.nextName(), read(in));
+              }
+              in.endObject();
+              return object;
+            case END_DOCUMENT:
+            case NAME:
+            case END_OBJECT:
+            case END_ARRAY:
+            default:
+              throw new IllegalArgumentException();
+          }
+}
+  ```
+    ]]>
+  </code>
+</response>

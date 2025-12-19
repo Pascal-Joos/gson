@@ -17,6 +17,7 @@
 
 package com.google.gson.internal;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.AbstractMap;
@@ -251,7 +252,7 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
    */
   void removeInternal(Node<K, V> node, boolean unlink) {
     if (unlink) {
-      node.prev.next = node.next;
+      Nullability.castToNonnull(node.prev).next = node.next;
       node.next.prev = node.prev;
       node.next = node.prev = null; // Help the GC (for performance)
     }

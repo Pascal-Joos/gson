@@ -18,7 +18,6 @@ package com.google.gson.reflect;
 
 import com.google.gson.internal.$Gson$Preconditions;
 import com.google.gson.internal.$Gson$Types;
-import edu.ucr.cs.riple.annotator.util.Nullability;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -292,8 +291,7 @@ public class TypeToken<T> {
    */
   public static TypeToken<?> getParameterized(Type rawType, Type... typeArguments) {
     return new TypeToken<Object>(
-        $Gson$Types.newParameterizedTypeWithOwner(
-            Nullability.castToNonnull(null), rawType, typeArguments));
+        $Gson$Types.newParameterizedTypeWithOwner(null, rawType, typeArguments));
   }
 
   /**

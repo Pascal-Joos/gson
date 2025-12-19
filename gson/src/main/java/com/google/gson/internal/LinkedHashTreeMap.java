@@ -493,8 +493,12 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
       this.height = 1;
       this.next = next;
       this.prev = prev;
-      prev.next = this;
-      next.prev = this;
+      if (prev != null) {
+        prev.next = this;
+      }
+      if (next != null) {
+        next.prev = this;
+      }
     }
 
     @Nullable
@@ -723,11 +727,28 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
        */
       for (int scale = 4; (size & scale - 1) == scale - 1; scale *= 2) {
         if (leavesSkipped == 0) {
-          // Pop right, center and left, then make center the top of the stack.
           Node<K, V> right = stack;
+          if (right == null) {
+            throw new IllegalStateException();
+          }
           Node<K, V> center = right.parent;
+          if (center == null) {
+            throw new IllegalStateException();
+          }
           Node<K, V> left = center.parent;
-          center.parent = left.parent;
+          if (left == null) {
+            throw new IllegalStateException();
+          }
+          Node<K, V> leftParent = left.parent;
+          center.parent = leftParent;
+          if (leftParent != null) {
+            if (leftParent.left == left) {
+              leftParent.left = center;
+            } else {
+              assert (leftParent.right == left);
+              leftParent.right = center;
+            }
+          }
           stack = center;
           // Construct a tree.
           center.left = left;
@@ -736,9 +757,28 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
           left.parent = center;
           right.parent = center;
         } else if (leavesSkipped == 1) {
-          // Pop right and center, then make center the top of the stack.
           Node<K, V> right = stack;
+          if (right == null) {
+            throw new IllegalStateException();
+          }
           Node<K, V> center = right.parent;
+          if (center == null) {
+            throw new IllegalStateException();
+          }
+          Node<K, V> parent = center.parent;
+          if (parent == null) {
+            throw new IllegalStateException();
+          }
+          Node<K, V> parentParent = parent.parent;
+          center.parent = parentParent;
+          if (parentParent != null) {
+            if (parentParent.left == parent) {
+              parentParent.left = center;
+            } else {
+              assert (parentParent.right == parent);
+              parentParent.right = center;
+            }
+          }
           stack = center;
           // Construct a tree with no left child.
           center.right = right;
@@ -753,7 +793,7 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
 
     Node<K, V> root() {
       Node<K, V> stackTop = this.stack;
-      if (stackTop.parent != null) {
+      if (stackTop == null || stackTop.parent != null) {
         throw new IllegalStateException();
       }
       return stackTop;

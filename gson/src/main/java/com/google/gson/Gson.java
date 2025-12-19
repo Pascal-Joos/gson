@@ -37,7 +37,6 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import com.google.gson.stream.MalformedJsonException;
-import edu.ucr.cs.riple.annotator.util.Nullability;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.Reader;
@@ -454,7 +453,7 @@ public final class Gson {
         List<Long> list = new ArrayList<Long>();
         in.beginArray();
         while (in.hasNext()) {
-          long value = Nullability.castToNonnull(longAdapter.read(in)).longValue();
+          long value = longAdapter.read(in).longValue();
           list.add(value);
         }
         in.endArray();

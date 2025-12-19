@@ -37,6 +37,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import com.google.gson.stream.MalformedJsonException;
+import edu.ucr.cs.riple.annotator.util.Nullability;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.Reader;
@@ -431,7 +432,7 @@ public final class Gson {
       @Override
       public AtomicLong read(JsonReader in) throws IOException {
         Number value = longAdapter.read(in);
-        return new AtomicLong(value.longValue());
+        return new AtomicLong(Nullability.castToNonnull(value).longValue());
       }
     }.nullSafe();
   }

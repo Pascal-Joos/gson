@@ -17,6 +17,7 @@
 
 package com.google.gson.internal;
 
+import edu.ucr.cs.riple.annotator.util.Nullability;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.AbstractMap;
@@ -727,7 +728,7 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
           Node<K, V> right = stack;
           Node<K, V> center = right.parent;
           Node<K, V> left = center.parent;
-          center.parent = left.parent;
+          center.parent = Nullability.castToNonnull(left).parent;
           stack = center;
           // Construct a tree.
           center.left = left;

@@ -17,6 +17,7 @@ package com.google.gson.internal;
 
 import java.io.ObjectStreamException;
 import java.math.BigDecimal;
+import javax.annotation.Nullable;
 
 /**
  * This class holds a number value that is lazily converted to a specific number type
@@ -65,6 +66,7 @@ public final class LazilyParsedNumber extends Number {
     return Double.parseDouble(value);
   }
 
+  @Nullable
   @Override
   public String toString() {
     return value;
@@ -80,7 +82,7 @@ public final class LazilyParsedNumber extends Number {
 
   @Override
   public int hashCode() {
-    return value.hashCode();
+    return value == null ? 1 : value.hashCode();
   }
 
   @Override
@@ -90,7 +92,7 @@ public final class LazilyParsedNumber extends Number {
     }
     if (obj instanceof LazilyParsedNumber) {
       LazilyParsedNumber other = (LazilyParsedNumber) obj;
-      return value == other.value || value.equals(other.value);
+      return value == other.value || (value != null && value.equals(other.value));
     }
     return false;
   }

@@ -30,6 +30,7 @@ import com.google.gson.internal.Streams;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import edu.ucr.cs.riple.annotator.util.Nullability;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import javax.annotation.Nullable;
@@ -145,7 +146,7 @@ public final class TreeTypeAdapter<T> extends TypeAdapter<T> {
       boolean matches =
           exactType != null
               ? exactType.equals(type) || matchRawType && exactType.getType() == type.getRawType()
-              : hierarchyType.isAssignableFrom(type.getRawType());
+              : Nullability.castToNonnull(hierarchyType).isAssignableFrom(type.getRawType());
       return matches
           ? new TreeTypeAdapter<T>(
               (JsonSerializer<T>) serializer, (JsonDeserializer<T>) deserializer, gson, type, this)

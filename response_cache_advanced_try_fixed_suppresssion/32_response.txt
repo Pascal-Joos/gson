@@ -1,0 +1,99 @@
+```xml
+<response>
+    <reason><![CDATA[
+We need to know whether, at the line:
+
+    Node<K, V> left = center.parent;
+
+the variable `center` might be null.
+
+The relevant block is:
+
+    if (leavesSkipped == 0) {
+      // Pop right, center and left, then make center the top of the stack.
+      Node<K, V> right = stack;
+      Node<K, V> center = right.parent;
+      Node<K, V> left = center.parent;
+      ...
+
+The potential nullness of `center` depends on `right.parent`:
+
+- `right` is assigned as `stack`.
+- `stack` is updated earlier in the method only by:
+
+      node.parent = stack;
+      stack = node; // Stack push.
+
+  and in the combining loop itself by:
+
+      center.parent = left.parent;
+      stack = center;
+
+  or in the other branch:
+
+      stack = center;
+
+- At the beginning of `add`, for the first node ever pushed in this structure, we have:
+
+      node.left = node.parent = node.right = null;
+      ...
+      node.parent = stack;
+      stack = node;
+
+  If this is the very first push into an empty stack (`stack` was null before the call),
+  then after this push:
+    - `stack` = new node
+    - `stack.parent` = old stack = null
+
+The `for` loop that contains our line executes conditionally:
+
+    for (int scale = 4; (size & scale - 1) == scale - 1; scale *= 2) {
+
+`size` is incremented twice in the body before the loop depending on `leavesToSkip`:
+
+    size++;        // after first push
+    ...
+    if (leavesToSkip > 0 && (size & 1) == 0) {
+        size++;
+        ...
+    }
+
+Then again the same pattern: push node, `size++`, then possible skip and `size++` again.
+
+What matters: there is no guard in the `if (leavesSkipped == 0)` branch that ensures that
+the "stack" contains at least 3 linked nodes via the `parent` chain. The code *assumes* it:
+"Pop right, center and left, then make center the top of the stack."
+
+However, that assumption is enforced only indirectly, via the arithmetic on `size`,
+`leavesToSkip`, and `leavesSkipped`. From this method alone we do **not** have a formal,
+locally provable invariant that:
+
+- whenever `(size & (scale - 1)) == scale - 1` and `leavesSkipped == 0`,
+- the current `stack` node (`right`) has `right.parent != null`
+  (and in fact `right.parent.parent != null`).
+
+Since:
+- `right` gets its `parent` from whatever `stack` was at the previous "push",
+- the initial `stack` can be null (not shown/guarded in this method),
+- and there are code paths where only one or two nodes may have been pushed
+  before the loop condition becomes true (depending on the prior global state of `size`,
+  `leavesToSkip`, and `leavesSkipped`),
+
+it is entirely possible (from the perspective of this method in isolation) that
+`right.parent` is null when we enter the `if (leavesSkipped == 0)` block. In that case:
+
+    Node<K, V> center = right.parent; // center == null
+    Node<K, V> left = center.parent;  // dereference of null
+
+This would produce a `NullPointerException`. The method itself contains no null check or
+other local guarantee to prevent this; it relies on invariants about the global state and
+stack shape that are not encoded in the code shown.
+
+Therefore, without additional, externally stated invariants (e.g., that `add` is only
+called in a context where the stack always has at least three nodes via parent-links
+whenever `leavesSkipped == 0` and the for-loop condition holds), we must conclude that
+`center` **can** be null from the viewpoint of static reasoning over this snippet alone.
+    ]]></reason>
+    <value>YES</value>
+</response>
+```

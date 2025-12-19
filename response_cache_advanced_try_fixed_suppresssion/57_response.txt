@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public char charAt(int i) {
+        return chars != null ? chars[i] : 0;
+  }
+  ```
+    ]]>
+  </code>
+</response>

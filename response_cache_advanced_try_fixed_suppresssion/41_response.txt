@@ -1,0 +1,98 @@
+```xml
+<response>
+    <reason><![CDATA[
+We are analyzing whether the variable `left` (and thus the expression `left` used at `center.parent = left.parent;`) can ever be null at that point in the method.
+
+Relevant code inside the `for` loop:
+
+    if (leavesSkipped == 0) {
+      // Pop right, center and left, then make center the top of the stack.
+      Node<K, V> right = stack;
+      Node<K, V> center = right.parent;
+      Node<K, V> left = center.parent;
+      center.parent = left.parent;
+      stack = center;
+      // Construct a tree.
+      center.left = left;
+      center.right = right;
+      center.height = right.height + 1;
+      left.parent = center;
+      right.parent = center;
+    }
+
+We need to reason about three things at the moment `Node<K, V> left = center.parent;` executes:
+
+1. `stack` must be non-null (otherwise `Node<K, V> right = stack;` would already fail).
+2. `right.parent` (assigned to `center`) must be non-null.
+3. `center.parent` (assigned to `left`) must be non-null.
+
+From the method:
+
+- Each `add` begins with:
+
+      node.left = node.parent = node.right = null;
+      node.height = 1;
+
+  So new nodes initially have `parent == null`.
+
+- Then:
+
+      node.parent = stack;
+      stack = node; // Stack push.
+
+  This sets the new node’s `parent` to the prior `stack` value (which may be null if this is the first node ever).
+
+Critically, `center`, `left`, and `right` are not arbitrary; they are nodes taken from this "implicit stack" built via the `parent` links:
+
+- `right = stack;` is the most recently pushed node.
+- `center = right.parent;` is the next node down the stack.
+- `left = center.parent;` is the one below that.
+
+The code in the loop comment explicitly relies on "Pop right, center and left" – that is, it assumes that at the moment this branch runs, there are at least three stack elements chained by `parent`:
+
+    left -> ... -> center -> right (or the reverse depending on how you visualize it)
+    and `stack` refers to `right`.
+
+If at any time `center` had `parent == null`, i.e., `center.parent` were `null`, then the "stack" would not contain three elements, and this branch would break its own invariant. That internal invariant is enforced by the size/scale/leavesSkipped conditions:
+
+- The loop guard:
+
+      for (int scale = 4; (size & scale - 1) == scale - 1; scale *= 2)
+
+  only allows the body to execute when `size` reaches specific forms (one less than a multiple of each `scale`), and
+
+- The first branch is guarded by:
+
+      if (leavesSkipped == 0) {
+
+  meaning "no virtual/omitted leaves are currently accounted for." Under that condition, the algorithm only reaches this branch when it has pushed exactly enough real nodes on the stack to form a complete subtree of 3 nodes (or larger, recursively).
+
+This is not visible directly from `add` alone, but it is a standard pattern in tree-building algorithms (this code is effectively building a balanced tree from sorted input using a stack of partial subtrees). For such an algorithm to be correct at all, the following must be true whenever it executes the first branch:
+
+- There are at least three elements on the stack.
+- Those three elements are linked by `.parent` references in the expected way.
+
+If those invariants did not hold, the method would already have thrown a `NullPointerException` earlier in this same block, because:
+
+- `Node<K, V> center = right.parent;` would be null if the stack had only one element or `right.parent` were broken.
+- Or `Node<K, V> left = center.parent;` would be null if there were only two elements.
+- Or walking/rewiring `left.parent` and `left.parent = center;` would break.
+
+Therefore, the safety of `center.parent = left.parent;` is entirely tied to the invariant that, at the point where `leavesSkipped == 0` and the size/scale condition triggers, we *must* have at least three nodes in the parent-linked "stack", and those nodes must all be non-null. That is the design contract of this method.
+
+Given this method in isolation, there is no explicit local null-check that *proves* this to a static analyzer, but from the code’s intended algorithm and the stack invariants it relies on:
+
+- If execution has reached:
+
+      Node<K, V> left = center.parent;
+
+  then `center` is non-null (otherwise `center.parent` dereference would fail right there).
+- If `left` were null, the tree-building algorithm would be in a logically impossible state with respect to how it manages `stack` and `size`. That contradiction would mean the algorithm is already broken earlier.
+
+In other words, under the intended and necessary invariants for this algorithm to run without exceptions, `left` cannot be null at that line. The algorithm's correct operation itself guarantees that `left` is non-null when that assignment executes.
+
+So, assuming the stack invariants and size/leavesSkipped logic are consistent (which they must be for the rest of the method to work without NPEs), `left` is not null at `center.parent = left.parent;`.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

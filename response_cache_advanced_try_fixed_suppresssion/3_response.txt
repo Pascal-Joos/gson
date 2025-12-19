@@ -1,0 +1,43 @@
+<response>
+  <reason><![CDATA[
+At the call site
+
+    Number value = longAdapter.read(in)
+
+`longAdapter` is a `TypeAdapter<Number>` used by `Gson$4.read` and `Gson$5.read` to produce `AtomicLong` and `AtomicLongArray`. The provided code shows many wrappers/adapters around `TypeAdapter.read`, several of which can return `null` when they see JSON `null` (e.g. `TypeAdapter$1`, `Excluder$1`, `TreeTypeAdapter`, the raw `TypeAdapter.read` in various factories). However, none of the given code paths are specific to `longAdapter` or constrain it to be non-null-returning.
+
+Key points:
+
+1. The base declaration
+
+       public abstract T read(JsonReader in) throws IOException
+
+   is abstract; there is no inherent non-null guarantee.
+
+2. Wrappers that may ultimately apply to `longAdapter` (e.g. `TypeAdapter$1`, `Excluder$1`, `TreeTypeAdapter`, `TypeAdapterRuntimeTypeWrapper`, `Gson$FutureTypeAdapter`) all either:
+   - explicitly return `null` for certain conditions (e.g. JSON `null`, excluded fields), or
+   - simply delegate to another adapter’s `read`, whose behavior is not constrained to be non-null.
+
+3. `Gson$4.read`:
+
+       public AtomicLong read(JsonReader in) throws IOException {
+         Number value = longAdapter.read(in);
+         return new AtomicLong(value.longValue());
+       }
+
+   does *not* guard against `value` being `null`; if `longAdapter.read(in)` returns `null`, this will throw a `NullPointerException`. The presence of that potential NPE does not prove `longAdapter.read` is non-null; it only shows the caller assumes non-null, but the library code shown does not enforce that assumption for `longAdapter`.
+
+4. Similarly, `Gson$5.read`:
+
+       long value = longAdapter.read(in).longValue();
+
+   will also NPE if `longAdapter.read(in)` returns `null`.
+
+5. You have not provided the concrete implementation (or factory method) that creates `longAdapter`. Without that, there is no way to rule out that `longAdapter` is:
+   - an instance of `TypeAdapter$1`, which returns `null` on JSON `null`, or
+   - an adapter wrapped by `Excluder$1` or `TreeTypeAdapter` or any other wrapper that can return `null`, or
+   - a custom/other `TypeAdapter<Number>` whose `read` may return `null` under some inputs.
+
+Because the actual `read` implementation for `longAdapter` is not given, and the framework clearly allows `TypeAdapter.read` to return `null` in multiple places, we cannot prove that `longAdapter.read(in)` is non-null at this call site. Therefore, it **can** return `null` here (leading to a possible NPE on `value.longValue()` in callers), and nothing in the supplied code disproves that possibility.]]></reason>
+  <value>YES</value>
+</response>

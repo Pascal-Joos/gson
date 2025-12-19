@@ -1,0 +1,12 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public static TypeToken<?> getParameterized(Type rawType, Type... typeArguments) {
+    return new TypeToken<Object>(
+        $Gson$Types.newParameterizedTypeWithOwner(Nullability.castToNonnull(null), rawType, typeArguments));
+}
+  ```
+    ]]>
+  </code>
+</response>

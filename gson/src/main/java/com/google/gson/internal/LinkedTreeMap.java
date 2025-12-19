@@ -98,9 +98,6 @@ public final class LinkedTreeMap<K, V> extends AbstractMap<K, V> implements Seri
       throw new NullPointerException("key == null");
     }
     Node<K, V> created = find(key, true);
-    if (created == null) {
-      return null;
-    }
     V result = created.value;
     created.value = value;
     return result;

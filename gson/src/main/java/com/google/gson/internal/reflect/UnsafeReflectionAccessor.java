@@ -55,7 +55,7 @@ final class UnsafeReflectionAccessor extends ReflectionAccessor {
 
   // Visible for testing only
   boolean makeAccessibleWithUnsafe(AccessibleObject ao) {
-    if (theUnsafe != null && overrideField != null && unsafeClass != null) {
+    if (theUnsafe != null && overrideField != null) {
       try {
         Method method = unsafeClass.getMethod("objectFieldOffset", Field.class);
         long overrideOffset =

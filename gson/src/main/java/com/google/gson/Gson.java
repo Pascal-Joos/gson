@@ -453,11 +453,7 @@ public final class Gson {
         List<Long> list = new ArrayList<Long>();
         in.beginArray();
         while (in.hasNext()) {
-          Number number = longAdapter.read(in);
-          if (number == null) {
-            continue;
-          }
-          long value = number.longValue();
+          long value = longAdapter.read(in).longValue();
           list.add(value);
         }
         in.endArray();

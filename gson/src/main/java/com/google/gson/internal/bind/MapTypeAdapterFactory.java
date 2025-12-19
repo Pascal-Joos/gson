@@ -31,7 +31,6 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
-import edu.ucr.cs.riple.annotator.util.Nullability;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -200,7 +199,7 @@ public final class MapTypeAdapterFactory implements TypeAdapterFactory {
       } else {
         in.beginObject();
         while (in.hasNext()) {
-          Nullability.castToNonnull(JsonReaderInternalAccess.INSTANCE).promoteNameToValue(in);
+          JsonReaderInternalAccess.INSTANCE.promoteNameToValue(in);
           K key = keyTypeAdapter.read(in);
           V value = valueTypeAdapter.read(in);
           V replaced = map.put(key, value);

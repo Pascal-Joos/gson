@@ -17,7 +17,6 @@
 
 package com.google.gson.internal;
 
-import edu.ucr.cs.riple.annotator.util.Nullability;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.AbstractMap;
@@ -326,8 +325,8 @@ public final class LinkedTreeMap<K, V> extends AbstractMap<K, V> implements Seri
 
       int delta = leftHeight - rightHeight;
       if (delta == -2) {
-        Node<K, V> rightLeft = Nullability.castToNonnull(right).left;
-        Node<K, V> rightRight = Nullability.castToNonnull(right).right;
+        Node<K, V> rightLeft = right.left;
+        Node<K, V> rightRight = right.right;
         int rightRightHeight = rightRight != null ? rightRight.height : 0;
         int rightLeftHeight = rightLeft != null ? rightLeft.height : 0;
 
@@ -336,7 +335,7 @@ public final class LinkedTreeMap<K, V> extends AbstractMap<K, V> implements Seri
           rotateLeft(node); // AVL right right
         } else {
           assert (rightDelta == 1);
-          rotateRight(Nullability.castToNonnull(right)); // AVL right left
+          rotateRight(right); // AVL right left
           rotateLeft(node);
         }
         if (insert) {

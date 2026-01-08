@@ -114,13 +114,15 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
 
     // Clear all links to help GC
     Node<K, V> header = this.header;
-    for (Node<K, V> e = header.next; e != header; ) {
-      Node<K, V> next = e.next;
-      e.next = e.prev = null;
-      e = next;
-    }
+    if (header != null) {
+      for (Node<K, V> e = header.next; e != header; ) {
+        Node<K, V> next = e.next;
+        e.next = e.prev = null;
+        e = next;
+      }
 
-    header.next = header.prev = header;
+      header.next = header.prev = header;
+    }
   }
 
   @Nullable
@@ -471,7 +473,7 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
     @Nullable Node<K, V> parent;
     @Nullable Node<K, V> left;
     @Nullable Node<K, V> right;
-    Node<K, V> next;
+    @Nullable Node<K, V> next;
     @Nullable Node<K, V> prev;
     @Nullable final K key;
     final int hash;
@@ -761,7 +763,7 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
   }
 
   private abstract class LinkedTreeMapIterator<T> implements Iterator<T> {
-    Node<K, V> next = header.next;
+    @Nullable Node<K, V> next = header.next;
     @Nullable Node<K, V> lastReturned = null;
     int expectedModCount = modCount;
 

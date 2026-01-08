@@ -493,12 +493,8 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
       this.height = 1;
       this.next = next;
       this.prev = prev;
-      if (prev != null) {
-        prev.next = this;
-      }
-      if (next != null) {
-        next.prev = this;
-      }
+      prev.next = this;
+      next.prev = this;
     }
 
     @Nullable
@@ -727,22 +723,10 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
        */
       for (int scale = 4; (size & scale - 1) == scale - 1; scale *= 2) {
         if (leavesSkipped == 0) {
-          if (stack == null || stack.parent == null || stack.parent.parent == null) {
-            break;
-          }
           // Pop right, center and left, then make center the top of the stack.
           Node<K, V> right = stack;
-          if (right == null || right.parent == null) {
-            break;
-          }
           Node<K, V> center = right.parent;
-          if (center == null || center.parent == null) {
-            break;
-          }
           Node<K, V> left = center.parent;
-          if (left == null) {
-            break;
-          }
           center.parent = left.parent;
           stack = center;
           // Construct a tree.
@@ -752,18 +736,9 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
           left.parent = center;
           right.parent = center;
         } else if (leavesSkipped == 1) {
-          if (stack == null || stack.parent == null) {
-            break;
-          }
           // Pop right and center, then make center the top of the stack.
           Node<K, V> right = stack;
-          if (right == null || right.parent == null) {
-            break;
-          }
           Node<K, V> center = right.parent;
-          if (center == null) {
-            break;
-          }
           stack = center;
           // Construct a tree with no left child.
           center.right = right;
@@ -778,7 +753,7 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
 
     Node<K, V> root() {
       Node<K, V> stackTop = this.stack;
-      if (stackTop == null || stackTop.parent != null) {
+      if (stackTop.parent != null) {
         throw new IllegalStateException();
       }
       return stackTop;

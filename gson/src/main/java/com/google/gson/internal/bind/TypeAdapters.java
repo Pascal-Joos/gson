@@ -32,6 +32,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import edu.ucr.cs.riple.annotator.util.Nullability;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -418,7 +419,7 @@ public final class TypeAdapters {
             return null;
           }
           String str = in.nextString();
-          if (str.length() != 1) {
+          if (Nullability.castToNonnull(str).length() != 1) {
             throw new JsonSyntaxException("Expecting character, got: " + str);
           }
           return str.charAt(0);
@@ -790,7 +791,7 @@ public final class TypeAdapters {
         public JsonElement read(JsonReader in) throws IOException {
           switch (in.peek()) {
             case STRING:
-              return new JsonPrimitive(in.nextString());
+              return new JsonPrimitive(Nullability.castToNonnull(in.nextString()));
             case NUMBER:
               String number = in.nextString();
               return new JsonPrimitive(new LazilyParsedNumber(number));

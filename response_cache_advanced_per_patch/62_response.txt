@@ -1,0 +1,48 @@
+```xml
+<response>
+    <reason><![CDATA[
+In this method, the potentially null expression is `hierarchyType` inside:
+
+    : hierarchyType.isAssignableFrom(type.getRawType());
+
+This branch is only evaluated when `exactType == null`, because of the preceding ternary:
+
+    boolean matches =
+        exactType != null
+            ? exactType.equals(type) || matchRawType && exactType.getType() == type.getRawType()
+            : hierarchyType.isAssignableFrom(type.getRawType());
+
+So the question is: can `hierarchyType` itself be null at the point `create` is called?
+
+This method is from Gson’s `TreeTypeAdapter.SingleTypeFactory`. In the Gson source, the relevant constructor is:
+
+    private final TypeToken<?> exactType;
+    private final Class<?> hierarchyType;
+
+    private SingleTypeFactory(Object serializer, TypeToken<?> exactType, boolean matchRawType,
+        Class<?> hierarchyType) {
+      this.serializer = serializer instanceof JsonSerializer ? (JsonSerializer<?>) serializer : null;
+      this.deserializer =
+          serializer instanceof JsonDeserializer ? (JsonDeserializer<?>) serializer : null;
+      this.exactType = exactType;
+      this.matchRawType = matchRawType;
+      this.hierarchyType = hierarchyType;
+    }
+
+`SingleTypeFactory` is created only inside the static `newFactory...` helpers (e.g. `TreeTypeAdapter.newFactory`, `newTypeHierarchyFactory`, etc.). There are two relevant patterns:
+
+1. For exact-type factories (`newFactory`, `newFactoryWithMatchRawType`), `exactType` is non-null and `hierarchyType` is passed as `null`.
+2. For hierarchy-type factories (`newTypeHierarchyFactory`), `exactType` is `null` and `hierarchyType` is taken from a non-null `Class<?>` argument and passed directly to the constructor.
+
+In the hierarchy-type case, the public factory method enforces non-null for the hierarchy class argument (either by contract or by directly passing a `Class` reference that cannot be null in the internal call sites). In the exact-type case, `hierarchyType` is indeed null, but then `exactType` is non-null, so the `exactType != null` branch is taken and the `hierarchyType.isAssignableFrom(...)` expression is never evaluated.
+
+Thus, in all valid ways `SingleTypeFactory` is constructed in Gson:
+
+- When `hierarchyType` is null, the code never reaches `hierarchyType.isAssignableFrom(...)` because `exactType != null`.
+- When execution can reach the `hierarchyType.isAssignableFrom(...)` branch (`exactType == null`), `hierarchyType` has been set from a non-null `Class<?>` and is therefore not null.
+
+Given these construction patterns and usage in the library, the expression `hierarchyType` at the point of `hierarchyType.isAssignableFrom(type.getRawType())` cannot be null.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

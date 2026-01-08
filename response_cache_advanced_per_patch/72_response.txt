@@ -1,0 +1,19 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj instanceof LazilyParsedNumber) {
+      LazilyParsedNumber other = (LazilyParsedNumber) obj;
+      return value == other.value || (value != null && value.equals(other.value));
+    }
+    return false;
+  }
+  ```
+    ]]>
+  </code>
+</response>

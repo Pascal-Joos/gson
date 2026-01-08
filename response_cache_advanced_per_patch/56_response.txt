@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  public int length() {
+        return chars != null ? chars.length : 0;
+  }
+  ```
+    ]]>
+  </code>
+</response>

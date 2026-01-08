@@ -1,0 +1,91 @@
+```xml
+<response>
+    <reason><![CDATA[
+We need to determine whether the variable `center` at the statements
+
+    center.right = right;   // in the first if-branch
+    ...
+    center.right = right;   // in the second if-branch
+
+can ever be null at the point of use, given only the method body.
+
+Key observations:
+
+1. How `stack` is built:
+   - At method entry, `node.parent` is set to null.
+   - Then:
+
+         node.parent = stack;
+         stack = node;
+
+     So the new `stack` top is always a non-null `node`, and its `parent` at that time is whatever `stack` was before the push (possibly null if this is the first push).
+
+2. Where `center` comes from:
+
+   - In the `leavesSkipped == 0` branch:
+
+         Node<K, V> right = stack;
+         Node<K, V> center = right.parent;
+         Node<K, V> left = center.parent;
+
+     So `center` is `right.parent`.
+
+   - In the `leavesSkipped == 1` branch:
+
+         Node<K, V> right = stack;
+         Node<K, V> center = right.parent;
+
+     Again, `center` is `right.parent`.
+
+   Thus, in both relevant branches, `center` is the `parent` of the current `stack` node (`right`).
+
+3. Can `right.parent` be null when these branches execute?
+
+   These combining operations are carefully arranged to run only when enough nodes have been pushed onto the `stack` to form the required patterns:
+
+   - The loop condition:
+
+         for (int scale = 4; (size & scale - 1) == scale - 1; scale *= 2)
+
+     ensures that combining happens only when `size` is of the form `2^k - 1` (plus some adjustments with `leavesToSkip` and `leavesSkipped`). The code comments describe combining either 3 single nodes or larger subtrees into balanced subtrees.
+
+   - Combining always uses the *top* elements of a chain linked through the `parent` field (which is serving as a stack link). Whenever a node is pushed (`stack = node`), that node’s `parent` is set to the previous `stack`. Therefore the stack is a singly-linked list via `parent`. Only the *bottom* element of the entire stack has `parent == null`. Any further pushes increase the depth of that chain.
+
+   For the first combining pattern (`leavesSkipped == 0`):
+
+   - The code assumes there are at least three nodes linked via `parent`:
+
+         right (top)
+         center = right.parent
+         left = center.parent
+
+     For this to be valid, both `right.parent` and `center.parent` must be non-null. If `center` were null, `left = center.parent` would dereference a null and the program would already have failed earlier at this line, before reaching `center.right = right;`. So on any path where execution reaches `center.right = right;` in this branch, `center` is non-null by necessity.
+
+   For the second pattern (`leavesSkipped == 1`):
+
+   - It assumes at least two nodes linked via `parent`:
+
+         right (top)
+         center = right.parent
+
+     As above, if there were not at least two stack elements, `right.parent` would be null, but then the entire design of this combining loop (conditioned on `size` and `leavesSkipped`) would be violated. The method is written under the invariant that it never attempts these combining steps until there are enough nodes on the stack. If that invariant failed, the first failing operation would be reading `center = right.parent` or dereferencing `center` later—not the `center.right = right` assignment itself.
+
+4. No code path in the shown method assigns null to `parent` except at the initial creation of a node (`node.parent = null;`). Afterwards, `parent` is only ever assigned other nodes:
+
+   - On push: `node.parent = stack; stack = node;`
+   - On tree construction: `left.parent = center; right.parent = center; center.parent = left.parent;`
+
+   So once a node becomes `right` in these combining blocks, its `parent` is guaranteed to be either another node in the stack chain or, for the bottom element only, null. The loop only performs the 3‑node or 2‑node combination when enough nodes have been accumulated (because of the `size` and `leavesSkipped` logic). That invariance is assumed by the implementation.
+
+5. Practical consequence:
+
+   Under the intended, documented invariants of this algorithm (this is a standard “bulk build” / perfectly balanced tree construction algorithm often used in sorted maps), the code never enters those branches unless the stack has the required depth. When execution reaches:
+
+   - `center.right = right;` in the `leavesSkipped == 0` branch, `center` has already been safely dereferenced as `center.parent` in `left = center.parent;`. So `center` must be non-null.
+   - `center.right = right;` in the `leavesSkipped == 1` branch, the code later dereferences `center` to compute `center.height = right.height + 1;`. The loop structure and `size` invariants ensure `center` is non-null whenever that branch executes.
+
+Given this method and its internal invariants (and no external mutation of `stack` / `parent` fields during execution of `add`), there is no code path where `center` could be null at the lines `center.right = right;` without already having caused a null dereference earlier. Therefore, within the logic of this method, `center` cannot be null at that expression.
+    ]]></reason>
+    <value>NO</value>
+</response>
+```

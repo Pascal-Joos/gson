@@ -1,0 +1,20 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+        @Override
+        public Character read(JsonReader in) throws IOException {
+          if (in.peek() == JsonToken.NULL) {
+            in.nextNull();
+            return null;
+          }
+          String str = in.nextString();
+          if (Nullability.castToNonnull(str).length() != 1) {
+            throw new JsonSyntaxException("Expecting character, got: " + str);
+          }
+          return str.charAt(0);
+        }
+  ```
+    ]]>
+  </code>
+</response>

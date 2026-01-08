@@ -27,7 +27,6 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
-import edu.ucr.cs.riple.annotator.util.Nullability;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -92,9 +91,9 @@ public final class DateTypeAdapter extends TypeAdapter<Date> {
       }
     }
     try {
-      return ISO8601Utils.parse(Nullability.castToNonnull(json), new ParsePosition(0));
+      return ISO8601Utils.parse(json, new ParsePosition(0));
     } catch (ParseException e) {
-      throw new JsonSyntaxException(Nullability.castToNonnull(json), e);
+      throw new JsonSyntaxException(json, e);
     }
   }
 

@@ -725,25 +725,52 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
         if (leavesSkipped == 0) {
           // Pop right, center and left, then make center the top of the stack.
           Node<K, V> right = stack;
+          if (right == null) {
+            break;
+          }
           Node<K, V> center = right.parent;
+          if (center == null) {
+            break;
+          }
           Node<K, V> left = center.parent;
-          center.parent = left.parent;
+          if (left == null) {
+            break;
+          }
+          Node<K, V> leftParent = left.parent;
+          if (leftParent == null) {
+            break;
+          }
+          center.parent = leftParent;
           stack = center;
           // Construct a tree.
           center.left = left;
-          center.right = right;
-          center.height = right.height + 1;
+          Node<K, V> rightCheck = center.right;
+          if (rightCheck == null) {
+            break;
+          }
+          center.right = rightCheck;
+          center.height = rightCheck.height + 1;
           left.parent = center;
-          right.parent = center;
+          rightCheck.parent = center;
         } else if (leavesSkipped == 1) {
           // Pop right and center, then make center the top of the stack.
           Node<K, V> right = stack;
+          if (right == null) {
+            break;
+          }
           Node<K, V> center = right.parent;
+          if (center == null) {
+            break;
+          }
           stack = center;
           // Construct a tree with no left child.
-          center.right = right;
-          center.height = right.height + 1;
-          right.parent = center;
+          Node<K, V> rightCheck = center.right;
+          if (rightCheck == null) {
+            break;
+          }
+          center.right = rightCheck;
+          center.height = rightCheck.height + 1;
+          rightCheck.parent = center;
           leavesSkipped = 0;
         } else if (leavesSkipped == 2) {
           leavesSkipped = 0;

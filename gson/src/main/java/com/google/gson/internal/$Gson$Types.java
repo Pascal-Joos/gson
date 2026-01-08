@@ -26,6 +26,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.*;
+import javax.annotation.Nullable;
 
 /**
  * Static methods for working with types.
@@ -216,7 +217,7 @@ public final class $Gson$Types {
     }
   }
 
-  static int hashCodeOrZero(Object o) {
+  static int hashCodeOrZero(@Nullable Object o) {
     return o != null ? o.hashCode() : 0;
   }
 
@@ -461,7 +462,7 @@ public final class $Gson$Types {
   }
 
   private static final class ParameterizedTypeImpl implements ParameterizedType, Serializable {
-    private final Type ownerType;
+    @Nullable private final Type ownerType;
     private final Type rawType;
     private final Type[] typeArguments;
 
@@ -493,6 +494,7 @@ public final class $Gson$Types {
       return rawType;
     }
 
+    @Nullable
     public Type getOwnerType() {
       return ownerType;
     }

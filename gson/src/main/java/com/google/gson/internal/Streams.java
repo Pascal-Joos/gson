@@ -36,7 +36,6 @@ public final class Streams {
   }
 
   /** Takes a reader in any state and returns the next value as a JsonElement. */
-  @SuppressWarnings("NullAway")
   public static JsonElement parse(JsonReader reader) throws JsonParseException {
     boolean isEmpty = true;
     try {

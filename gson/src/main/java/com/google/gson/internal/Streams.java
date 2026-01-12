@@ -25,9 +25,11 @@ import com.google.gson.internal.bind.TypeAdapters;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import com.google.gson.stream.MalformedJsonException;
+import edu.ucr.cs.riple.annotator.util.Nullability;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.Writer;
+import javax.annotation.Nullable;
 
 /** Reads and writes GSON parse trees over streams. */
 public final class Streams {
@@ -99,14 +101,14 @@ public final class Streams {
 
     /** A mutable char sequence pointing at a single char[]. */
     static class CurrentWrite implements CharSequence {
-      char[] chars;
+      @Nullable char[] chars;
 
       public int length() {
-        return chars.length;
+        return chars != null ? chars.length : 0;
       }
 
       public char charAt(int i) {
-        return chars[i];
+        return chars != null ? Nullability.castToNonnull(chars)[i] : 0;
       }
 
       public CharSequence subSequence(int start, int end) {

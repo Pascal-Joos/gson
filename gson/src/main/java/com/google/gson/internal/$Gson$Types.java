@@ -568,7 +568,7 @@ public final class $Gson$Types {
    */
   private static final class WildcardTypeImpl implements WildcardType, Serializable {
     private final Type upperBound;
-    private final Type lowerBound;
+    @Nullable private final Type lowerBound;
 
     public WildcardTypeImpl(Type[] upperBounds, Type[] lowerBounds) {
       checkArgument(lowerBounds.length <= 1);

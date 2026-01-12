@@ -1,0 +1,130 @@
+```xml
+<response>
+    <reason><![CDATA[
+We only need to look at the branch where the line appears:
+
+    if (leavesSkipped == 0) {
+      // Pop right, center and left, then make center the top of the stack.
+      Node<K, V> right = stack;
+      Node<K, V> center = right.parent;
+      Node<K, V> left = center.parent;
+      center.parent = left.parent;
+      ...
+
+For `left` to be null at `center.parent = left.parent;`, either:
+
+1. `center` is null (making `center.parent` dereference invalid earlier), or  
+2. `center` is non-null but its `parent` field is null (so `left` is null).
+
+We must check if either is possible given how `stack` and `parent` are manipulated.
+
+Key facts from the method:
+
+1. At the start of `add`:
+   ```java
+   node.left = node.parent = node.right = null;
+   node.height = 1;
+   ```
+
+2. Then:
+   ```java
+   node.parent = stack;
+   stack = node; // Stack push.
+   size++;
+   ```
+
+   So the pushed node has `parent` set to the *previous* top-of-stack.
+
+3. The combining loop:
+   ```java
+   for (int scale = 4; (size & scale - 1) == scale - 1; scale *= 2) {
+       if (leavesSkipped == 0) {
+           Node<K, V> right = stack;
+           Node<K, V> center = right.parent;
+           Node<K, V> left = center.parent;
+           center.parent = left.parent;
+           ...
+           left.parent = center;
+           right.parent = center;
+       } else if (...) ...
+   }
+   ```
+
+Observations about the “stack” structure:
+
+- `stack` is a linked stack built via the `parent` field.
+- Every time we push:
+  - The new top (`stack`) has `parent = previousTop`.
+- Every time we perform the 3-node combine (`leavesSkipped == 0`):
+  - We assume:
+    - `right` is the current `stack` (top),
+    - `center` is directly below `right`,
+    - `left` is directly below `center`.
+  - We then “pop” three nodes and push `center` back:
+    - `center.parent = left.parent;`
+    - `stack = center;`
+  - After building the subtree:
+    - `left.parent = center;`
+    - `right.parent = center;`
+  - So:
+    - The `parent` chain for the stack nodes always points either
+      - further down the stack, or
+      - to some earlier stack element (or null at the bottom).
+
+Crucial point: is it possible for `center` or `left` to be null?
+
+- `right = stack`:
+  - For this code to execute, there must be **at least three nodes** on the stack to interpret “right, center, left”. The algorithm’s design (from a classic balanced-tree bulk-builder) relies on that invariant: the combining step is only valid when there are enough nodes on the stack.
+  - This invariant is *not* established solely by the code snippet shown; it depends on correct surrounding logic and prior uses of `stack` and `size` across multiple `add` calls.
+
+- How do nodes enter the stack?
+  - On the *first-ever* call to `add`, assuming `stack` is initially null:
+    - `node.parent = stack;` gives `node.parent = null`.
+    - `stack = node;`
+    - So the first stack element has a null parent (bottom of stack).
+  - On subsequent calls, new nodes’ `parent` points to the previous `stack`. So the parent chain is always well-defined for entries *above* the bottom.
+
+- In the 3-node combine, we require:
+  - `right = stack` (non-null top element),
+  - `center = right.parent`,
+  - `left = center.parent`.
+
+  For `center` to be non-null:
+  - `right.parent` must not be null.
+  - That means `right` cannot be the original bottom-of-stack node (because that one has `parent = null`).
+  - Similarly, for `left` to be non-null:
+  - `center.parent` must not be null, so `center` cannot be the bottom-of-stack node.
+
+- Whether this situation (insufficient depth, giving null parent) is possible depends entirely on whether the loop condition and the external maintenance of `stack` and `size` guarantee that we *only* enter the `leavesSkipped == 0` block when there are at least three nodes in the stack.
+
+From the given method alone:
+
+- There is no *explicit* guard ensuring the stack depth is ≥ 3 before the 3-node combine is attempted.
+- `size` is being incremented and used to decide when to perform combines:
+  ```java
+  for (int scale = 4; (size & scale - 1) == scale - 1; scale *= 2) { ... }
+  ```
+  but the relationship between `size` and *stack depth* is not provably tight from this snippet alone, especially since `leavesToSkip` and `leavesSkipped` can affect how many nodes are skipped or combined.
+
+- Therefore, from the *local* perspective of this method, it is possible that:
+  - The first time the condition `(size & (scale - 1)) == scale - 1` becomes true, the stack might not yet have three elements. In that case:
+    - `right = stack` is a single node whose `parent` is null → `center = null`.
+    - Then `Node<K, V> left = center.parent;` would already crash with a `NullPointerException` when dereferencing `center`.
+    - Even if we assume `center` is not null (i.e., there are at least two elements), we still might have:
+      - `center` being the bottom-of-stack node → `center.parent` null → `left = null`.
+      - Then `center.parent = left.parent;` attempts to read `left.parent` and would cause a `NullPointerException`.
+
+So, absent a formally specified invariant like “whenever `(size & (scale - 1)) == scale - 1` and `leavesSkipped == 0` holds, the stack has at least three elements and `center.parent` is non-null”, the code snippet itself does not prove that `left` is non-null.
+
+Because that invariant is not derivable from this method in isolation and depends on external guarantees (the life-cycle of `stack`, how `add` is called, and how `leavesToSkip`/`leavesSkipped` interact with `size`), we cannot conclusively state that `left` is always non-null purely from this code.
+
+Hence, based solely on the provided method and without those additional invariants, `left` can *logically* become null on some control paths, making the dereference `left.parent` potentially unsafe.
+
+Therefore, with the information given, we cannot soundly guarantee non-nullness of `left` at that line.]]></reason>
+    <value>UNKNOWN</value>
+    <requests>
+        <request><![CDATA[Provide the class-level invariants or documentation describing how `stack`, `size`, `leavesToSkip`, and `leavesSkipped` are intended to relate to the number of elements in the stack at each `add` call.]]></request>
+        <request><![CDATA[Show the initialization of `stack`, `size`, `leavesToSkip`, and `leavesSkipped`, and any other methods that manipulate `stack` or these counters, so we can verify whether the three-element stack invariant always holds when `leavesSkipped == 0` and the combine loop is entered.]]></request>
+    </requests>
+</response>
+```

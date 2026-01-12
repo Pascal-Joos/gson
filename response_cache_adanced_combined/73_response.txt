@@ -1,0 +1,11 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+public JsonPrimitive(String string) {
+    value = $Gson$Preconditions.checkNotNull(Nullability.castToNonnull(string));
+}
+  ```
+    ]]>
+  </code>
+</response>

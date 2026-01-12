@@ -1,0 +1,23 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  private Date deserializeToDate(String s) {
+      synchronized (dateFormats) {
+        for (DateFormat dateFormat : dateFormats) {
+          try {
+            return dateFormat.parse(s);
+          } catch (ParseException ignored) {
+          }
+        }
+        try {
+          return ISO8601Utils.parse(Nullability.castToNonnull(s), new ParsePosition(0));
+        } catch (ParseException e) {
+          throw new JsonSyntaxException(s, e);
+        }
+      }
+  }
+  ```
+    ]]>
+  </code>
+</response>

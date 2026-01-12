@@ -1,0 +1,12 @@
+<response>
+  <success>true</success>
+  <code><![CDATA[
+  ```java
+  @Override
+  public int hashCode() {
+    return value == null ? 1 : value.hashCode();
+  }
+  ```
+    ]]>
+  </code>
+</response>
